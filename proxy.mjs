@@ -378,6 +378,27 @@ app.get('/region/:name', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Serve index.html for static pages (SPA)
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/contact', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/advertise', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/bookmarks', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({

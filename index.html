@@ -71,7 +71,40 @@
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>DAILYNEWS</h3>
+                    <p>Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events from Kenya, Africa, and around the world.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                        <li><a href="/advertise">Advertise With Us</a></li>
+                        <li><a href="/privacy">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p>Email: <a href="mailto:gideongeng@gmail.com">gideongeng@gmail.com</a></p>
+                    <p>Report an Issue: <a href="mailto:gideongeng@gmail.com?subject=Report%20Issue">gideongeng@gmail.com</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="copyright-year">2025</span> DAILYNEWS. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
     <script src="/script.js"></script>
+    <script>
+        // Auto-update copyright year
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+    </script>
     <script>
         // Search form handler
         const searchForm = document.getElementById('search-form');

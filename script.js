@@ -168,7 +168,7 @@ async function renderHomePage() {
                         ${renderAdBanner()}
                         ${data.articles && data.articles.length > 0 ? renderHeroSection(data.articles[0], data.articles.slice(1, 3)) : '<p>No articles available</p>'}
                         ${data.articles && data.articles.length > 3 ? renderNewsGrid(data.articles.slice(3), 'LATEST STORIES') : ''}
-                        ${renderColumnistsSection()}
+                        ${renderColumnistsSection(data.articles || [])}
                     </div>
                     ${renderSidebar(trending.articles || [])}
                 </div>
@@ -176,6 +176,7 @@ async function renderHomePage() {
         `;
 
         attachArticleClickHandlers();
+        attachTabHandlers();
         setTimeout(() => updateActiveNav(), 100);
     } catch (error) {
         console.error('Error rendering homepage:', error);
@@ -226,6 +227,7 @@ async function renderCategoryPage(params) {
         `;
 
         attachArticleClickHandlers();
+        attachTabHandlers();
         setTimeout(() => updateActiveNav(), 100);
     } catch (error) {
         console.error(`Error rendering ${category} page:`, error);
@@ -533,69 +535,94 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
     `;
 }
 
-function renderColumnistsSection() {
+function renderColumnistsSection(articles = []) {
+    // Extract unique reporters from articles
+    const reporters = new Map();
+    articles.forEach(article => {
+        if (article.author && article.author !== 'Staff Writer' && article.source) {
+            const key = `${article.author}_${article.source}`;
+            if (!reporters.has(key)) {
+                reporters.set(key, {
+                    name: article.author,
+                    source: article.source,
+                    category: article.category || 'general',
+                    image: article.image || '/images/World Bank.jpg'
+                });
+            }
+        }
+    });
+
+    // Get up to 4 unique reporters, or use defaults
+    const reporterArray = Array.from(reporters.values()).slice(0, 4);
+    
+    // If we don't have enough reporters, add some defaults
+    while (reporterArray.length < 4) {
+        const defaults = [
+            { name: 'Staff Writer', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' },
+            { name: 'News Team', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' },
+            { name: 'Editorial Team', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' },
+            { name: 'Correspondent', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' }
+        ];
+        reporterArray.push(defaults[reporterArray.length]);
+    }
+
     return `
         <section class="columnists-section">
-            <h2 class="section-title-white">COLUMNISTS</h2>
+            <h2 class="section-title-white">COLUMNISTS & REPORTERS</h2>
             <div class="columnists-grid">
-                <article class="columnist-card">
-                    <div class="columnist-avatar">
-                        <img src="/images/ffhxyohfelhiamortx5q.avif" alt="John Doe" loading="lazy">
-                    </div>
-                    <div class="columnist-info">
-                        <h3 class="columnist-name">John Doe</h3>
-                        <p class="columnist-title">Political Analyst</p>
-                        <p class="columnist-excerpt">Expert commentary on political developments</p>
-                    </div>
-                </article>
-                <article class="columnist-card">
-                    <div class="columnist-avatar">
-                        <img src="/images/ffhxyohfelhiamortx5q.avif" alt="Jane Smith" loading="lazy">
-                    </div>
-                    <div class="columnist-info">
-                        <h3 class="columnist-name">Jane Smith</h3>
-                        <p class="columnist-title">Economics Editor</p>
-                        <p class="columnist-excerpt">In-depth economic analysis and insights</p>
-                    </div>
-                </article>
-                <article class="columnist-card">
-                    <div class="columnist-avatar">
-                        <img src="/images/ffhxyohfelhiamortx5q.avif" alt="Mike Johnson" loading="lazy">
-                    </div>
-                    <div class="columnist-info">
-                        <h3 class="columnist-name">Mike Johnson</h3>
-                        <p class="columnist-title">Sports Columnist</p>
-                        <p class="columnist-excerpt">Covering the latest in sports and athletics</p>
-                    </div>
-                </article>
-                <article class="columnist-card">
-                    <div class="columnist-avatar">
-                        <img src="/images/ffhxyohfelhiamortx5q.avif" alt="Sarah Williams" loading="lazy">
-                    </div>
-                    <div class="columnist-info">
-                        <h3 class="columnist-name">Sarah Williams</h3>
-                        <p class="columnist-title">Culture Critic</p>
-                        <p class="columnist-excerpt">Exploring arts, culture, and society</p>
-                    </div>
-                </article>
+                ${reporterArray.map(reporter => `
+                    <article class="columnist-card">
+                        <div class="columnist-avatar">
+                            <img src="${reporter.image}" alt="${reporter.name}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                        </div>
+                        <div class="columnist-info">
+                            <h3 class="columnist-name">${reporter.name}</h3>
+                            <p class="columnist-title">${reporter.source}</p>
+                            <p class="columnist-excerpt">${reporter.category.charAt(0).toUpperCase() + reporter.category.slice(1)} Reporter</p>
+                        </div>
+                    </article>
+                `).join('')}
             </div>
         </section>
     `;
 }
 
 function renderSidebar(trendingArticles = []) {
+    // Filter articles by time period
+    const now = new Date();
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const filterByDate = (articles, daysAgo) => {
+        const cutoff = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+        return articles.filter(article => {
+            const pubDate = new Date(article.publishedAt);
+            return pubDate >= cutoff;
+        });
+    };
+
+    const thisWeekArticles = filterByDate(trendingArticles, 7);
+    const lastWeekArticles = filterByDate(trendingArticles, 14).filter(a => {
+        const pubDate = new Date(a.publishedAt);
+        return pubDate >= lastWeek && pubDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    });
+    const lastMonthArticles = filterByDate(trendingArticles, 30).filter(a => {
+        const pubDate = new Date(a.publishedAt);
+        return pubDate >= lastMonth && pubDate < lastWeek;
+    });
+
     return `
         <aside class="sidebar">
             <section class="sidebar-section">
                 <h3 class="sidebar-title">MOST READ NEWS</h3>
                 <div class="sidebar-tabs">
-                    <button class="tab-btn active" data-tab="this-week">This Week</button>
-                    <button class="tab-btn" data-tab="last-week">Last Week</button>
-                    <button class="tab-btn" data-tab="last-month">Last Month</button>
+                    <button class="tab-btn active" data-tab="this-week" data-articles='${JSON.stringify(thisWeekArticles)}'>This Week</button>
+                    <button class="tab-btn" data-tab="last-week" data-articles='${JSON.stringify(lastWeekArticles)}'>Last Week</button>
+                    <button class="tab-btn" data-tab="last-month" data-articles='${JSON.stringify(lastMonthArticles)}'>Last Month</button>
                 </div>
-                <div class="sidebar-articles">
-                    ${trendingArticles.map(article => `
-                        <article class="sidebar-article">
+                <div class="sidebar-articles" id="sidebar-articles-container">
+                    ${thisWeekArticles.length > 0 ? thisWeekArticles.map(article => `
+                        <article class="sidebar-article" data-article-id="${article.id}" style="cursor: pointer;">
                             <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
                             <div class="sidebar-article-content">
                                 <h4>${article.title}</h4>
@@ -604,7 +631,7 @@ function renderSidebar(trendingArticles = []) {
                                 </div>
                             </div>
                         </article>
-                    `).join('')}
+                    `).join('') : '<p class="no-articles">No articles found for this period.</p>'}
                 </div>
             </section>
             
@@ -684,6 +711,10 @@ router.addRoute('/region/:name', renderRegionPage);
 router.addRoute('/article/:id', renderArticlePage);
 router.addRoute('/search', renderSearchPage);
 router.addRoute('/bookmarks', renderBookmarksPage);
+router.addRoute('/about', renderAboutPage);
+router.addRoute('/contact', renderContactPage);
+router.addRoute('/advertise', renderAdvertisePage);
+router.addRoute('/privacy', renderPrivacyPage);
 
 // ===========================
 // Mobile Navigation
@@ -1143,6 +1174,234 @@ function attachArticleClickHandlers() {
     });
 }
 
+function attachTabHandlers() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const container = document.getElementById('sidebar-articles-container');
+    
+    if (!tabButtons.length || !container) return;
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active state
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Get articles for this tab
+            const articles = JSON.parse(btn.dataset.articles || '[]');
+            
+            // Render articles
+            if (articles.length > 0) {
+                container.innerHTML = articles.map(article => `
+                    <article class="sidebar-article" data-article-id="${article.id}" style="cursor: pointer;">
+                        <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                        <div class="sidebar-article-content">
+                            <h4>${article.title}</h4>
+                            <div class="sidebar-meta">
+                                <span class="sidebar-date">${formatDate(article.publishedAt)}</span>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+            } else {
+                container.innerHTML = '<p class="no-articles">No articles found for this period.</p>';
+            }
+        });
+    });
+}
+
+// ===========================
+// Static Pages
+// ===========================
+
+async function renderAboutPage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+    
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="static-page">
+                <h1>About Us</h1>
+                <div class="page-content">
+                    <p>DAILYNEWS is your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events from Kenya, Africa, and around the world.</p>
+                    <p>We are committed to delivering accurate, timely, and relevant news to keep you informed about the issues that matter most.</p>
+                    <h2>Our Mission</h2>
+                    <p>To provide high-quality journalism that informs, educates, and empowers our readers with reliable news and insightful analysis.</p>
+                    <h2>Contact Us</h2>
+                    <p>For inquiries, please email us at <a href="mailto:gideongeng@gmail.com">gideongeng@gmail.com</a></p>
+                </div>
+            </div>
+        </div>
+    `;
+    updateActiveNav();
+}
+
+async function renderContactPage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+    
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="static-page">
+                <h1>Contact Us</h1>
+                <div class="page-content">
+                    <p>We'd love to hear from you! Get in touch with us through the following channels:</p>
+                    <div class="contact-info">
+                        <h2>Email</h2>
+                        <p><strong>General Inquiries:</strong> <a href="mailto:gideongeng@gmail.com">gideongeng@gmail.com</a></p>
+                        <p><strong>Report an Issue:</strong> <a href="mailto:gideongeng@gmail.com?subject=Report%20Issue">gideongeng@gmail.com</a></p>
+                    </div>
+                    <div class="contact-form">
+                        <h2>Send us a Message</h2>
+                        <form id="contact-form">
+                            <div class="form-group">
+                                <label for="contact-name">Name</label>
+                                <input type="text" id="contact-name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-email">Email</label>
+                                <input type="email" id="contact-email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-subject">Subject</label>
+                                <input type="text" id="contact-subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-message">Message</label>
+                                <textarea id="contact-message" name="message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Handle form submission
+    const form = document.getElementById('contact-form');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const email = formData.get('email');
+            const subject = formData.get('subject');
+            const message = formData.get('message');
+            const name = formData.get('name');
+            
+            // Open email client
+            const mailtoLink = `mailto:gideongeng@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
+            window.location.href = mailtoLink;
+        });
+    }
+    
+    updateActiveNav();
+}
+
+async function renderAdvertisePage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+    
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="static-page">
+                <h1>Advertise With Us</h1>
+                <div class="page-content">
+                    <p>Reach your target audience with DAILYNEWS. We offer various advertising opportunities to help your business grow.</p>
+                    <h2>Why Advertise with DAILYNEWS?</h2>
+                    <ul>
+                        <li>Reach a large and engaged audience</li>
+                        <li>Target specific demographics and interests</li>
+                        <li>Multiple advertising formats available</li>
+                        <li>Competitive pricing and flexible packages</li>
+                    </ul>
+                    <h2>Get Started</h2>
+                    <p>Contact our advertising team to discuss your advertising needs:</p>
+                    <p><strong>Email:</strong> <a href="mailto:gideongeng@gmail.com?subject=Advertising%20Inquiry">gideongeng@gmail.com</a></p>
+                    <p>We'll get back to you with a customized advertising proposal that fits your budget and goals.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    updateActiveNav();
+}
+
+async function renderPrivacyPage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+    
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="static-page">
+                <h1>Privacy Policy</h1>
+                <div class="page-content">
+                    <p><strong>Last Updated:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    
+                    <h2>1. Introduction</h2>
+                    <p>DAILYNEWS ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.</p>
+                    
+                    <h2>2. Information We Collect</h2>
+                    <h3>2.1 Information You Provide</h3>
+                    <p>We may collect information that you voluntarily provide to us, including:</p>
+                    <ul>
+                        <li>Email address (when subscribing to our newsletter)</li>
+                        <li>Name and contact information (when contacting us)</li>
+                        <li>Any other information you choose to provide</li>
+                    </ul>
+                    
+                    <h3>2.2 Automatically Collected Information</h3>
+                    <p>When you visit our website, we may automatically collect certain information about your device, including:</p>
+                    <ul>
+                        <li>IP address</li>
+                        <li>Browser type and version</li>
+                        <li>Pages you visit and time spent on pages</li>
+                        <li>Referring website addresses</li>
+                        <li>Device information</li>
+                    </ul>
+                    
+                    <h2>3. How We Use Your Information</h2>
+                    <p>We use the information we collect to:</p>
+                    <ul>
+                        <li>Provide, maintain, and improve our services</li>
+                        <li>Send you newsletters and updates (with your consent)</li>
+                        <li>Respond to your inquiries and requests</li>
+                        <li>Analyze website usage and trends</li>
+                        <li>Ensure website security and prevent fraud</li>
+                    </ul>
+                    
+                    <h2>4. Cookies and Tracking Technologies</h2>
+                    <p>We use cookies and similar tracking technologies to track activity on our website and store certain information. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.</p>
+                    
+                    <h2>5. Third-Party Services</h2>
+                    <p>Our website may contain links to third-party websites. We are not responsible for the privacy practices of these external sites. We encourage you to review the privacy policies of any third-party sites you visit.</p>
+                    
+                    <h2>6. Data Security</h2>
+                    <p>We implement appropriate technical and organizational security measures to protect your personal information. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+                    
+                    <h2>7. Your Rights</h2>
+                    <p>You have the right to:</p>
+                    <ul>
+                        <li>Access the personal information we hold about you</li>
+                        <li>Request correction of inaccurate information</li>
+                        <li>Request deletion of your personal information</li>
+                        <li>Opt-out of marketing communications</li>
+                    </ul>
+                    
+                    <h2>8. Children's Privacy</h2>
+                    <p>Our website is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13.</p>
+                    
+                    <h2>9. Changes to This Privacy Policy</h2>
+                    <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
+                    
+                    <h2>10. Contact Us</h2>
+                    <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                    <p><strong>Email:</strong> <a href="mailto:gideongeng@gmail.com?subject=Privacy%20Policy%20Inquiry">gideongeng@gmail.com</a></p>
+                </div>
+            </div>
+        </div>
+    `;
+    updateActiveNav();
+}
+
 // ===========================
 // Bookmarks Page Route
 // ===========================
@@ -1171,6 +1430,7 @@ async function renderBookmarksPage() {
             </div>
         `;
         attachArticleClickHandlers();
+        attachTabHandlers();
         updateActiveNav('bookmarks');
     } catch (error) {
         console.error('Error rendering bookmarks:', error);
@@ -1190,8 +1450,6 @@ async function renderBookmarksPage() {
         attachArticleClickHandlers();
     }
 }
-
-router.addRoute('/bookmarks', renderBookmarksPage);
 
 // ===========================
 // Initialize All Enhancements

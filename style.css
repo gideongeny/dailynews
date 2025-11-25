@@ -1642,3 +1642,240 @@ img {
         height: 400px;
     }
 }
+
+/* ==== Footer Styles ==== */
+.main-footer {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #fff;
+    padding: 60px 40px 20px;
+    margin-top: 80px;
+    border-top: 4px solid #dc143c;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-section h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #dc143c;
+    margin-bottom: 20px;
+}
+
+.footer-section h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.footer-section p {
+    color: #ccc;
+    line-height: 1.8;
+    margin-bottom: 10px;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 10px;
+}
+
+.footer-section a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    color: #dc143c;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 30px;
+    border-top: 1px solid #444;
+    color: #999;
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* ==== Static Page Styles ==== */
+.static-page {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 40px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.static-page h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #dc143c;
+    padding-bottom: 15px;
+}
+
+.static-page h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.static-page h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+.static-page p {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+.static-page ul {
+    margin-bottom: 20px;
+    padding-left: 30px;
+}
+
+.static-page ul li {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 8px;
+}
+
+.static-page a {
+    color: #dc143c;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.static-page a:hover {
+    color: #c41e3a;
+    text-decoration: underline;
+}
+
+.contact-info {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 25px 0;
+}
+
+.contact-form {
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e8e8e8;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #dc143c;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* ==== Sidebar Tabs ==== */
+.sidebar-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.sidebar-tabs .tab-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    background: #f8f9fa;
+    border: 2px solid #e8e8e8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+    font-weight: 600;
+}
+
+.sidebar-tabs .tab-btn.active,
+.sidebar-tabs .tab-btn:hover {
+    background: linear-gradient(135deg, #dc143c 0%, #ff6b6b 100%);
+    color: #fff;
+    border-color: #dc143c;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .static-page {
+        padding: 20px;
+        margin: 20px;
+    }
+
+    .static-page h1 {
+        font-size: 2rem;
+    }
+
+    .sidebar-tabs {
+        flex-direction: column;
+    }
+
+    .sidebar-tabs .tab-btn {
+        width: 100%;
+    }
+}
