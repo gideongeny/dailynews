@@ -1,7 +1,7 @@
 import express from 'express';
 import fetch from 'node-fetch';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import NEWS_CONFIG from './config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_VERCEL = process.env.VERCEL === '1';
 
 // ===========================
 // News Cache
@@ -62,7 +63,7 @@ async function fetchFromNewsData(params) {
 
     if (data.status === 'success' && data.results) {
         return data.results.map(article => ({
-            id: article.article_id || Math.random().toString(36).substr(2, 9),
+            id: article.article_id || Math.random().toString(36).slice(2, 11),
             title: article.title,
             description: article.description || article.content || 'No description available',
             content: article.content || article.description || '',
@@ -96,7 +97,7 @@ async function fetchFromTheNewsAPI(params) {
 
     if (data.data) {
         return data.data.map(article => ({
-            id: article.uuid || Math.random().toString(36).substr(2, 9),
+            id: article.uuid || Math.random().toString(36).slice(2, 11),
             title: article.title,
             description: article.description || 'No description available',
             content: article.description || '',
@@ -300,8 +301,8 @@ async function fetchNews(params) {
             setCachedData(cacheKey, articles);
             NEWS_CONFIG.REQUEST_COUNT++;
             return articles;
-        } catch (error2) {
-            console.error('TheNewsAPI error:', error2.message);
+        } catch (error_) {
+            console.error('TheNewsAPI error:', error_.message);
 
             // Fallback to mock data
             if (NEWS_CONFIG.USE_MOCK_FALLBACK) {
@@ -564,7 +565,7 @@ app.get('/api/trending', async (req, res) => {
 app.post('/api/subscribe', (req, res) => {
     const { email } = req.body;
 
-    if (!email || !email.includes('@')) {
+    if (!email?.includes('@')) {
         return res.status(400).json({
             status: 'error',
             message: 'Valid email address is required'
@@ -614,39 +615,46 @@ app.use((err, req, res, next) => {
 // Start Server
 // ===========================
 
-app.listen(PORT, () => {
-    console.log('');
-    console.log('╔════════════════════════════════════════╗');
-    console.log('║                                        ║');
-    console.log('║         DAILY NEWS SERVER              ║');
-    console.log('║         Multi-Page Edition             ║');
-    console.log('║                                        ║');
-    console.log('╚════════════════════════════════════════╝');
-    console.log('');
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📰 Homepage: http://localhost:${PORT}`);
-    console.log(`📁 Categories: http://localhost:${PORT}/category/sports`);
-    console.log(`🌍 Regions: http://localhost:${PORT}/region/kenya`);
-    console.log(`🔍 Search: http://localhost:${PORT}/search?q=economy`);
-    console.log(`🔧 Health: http://localhost:${PORT}/health`);
-    console.log('');
-    console.log('📡 API Endpoints:');
-    console.log('   GET /api/news');
-    console.log('   GET /api/news/category/:category');
-    console.log('   GET /api/news/region/:region');
-    console.log('   GET /api/search?q=query');
-    console.log('   GET /api/trending');
-    console.log('');
-    console.log('Press Ctrl+C to stop the server');
-    console.log('');
-});
+if (!IS_VERCEL) {
+    app.listen(PORT, () => {
+        console.log('');
+        console.log('╔════════════════════════════════════════╗');
+        console.log('║                                        ║');
+        console.log('║         DAILY NEWS SERVER              ║');
+        console.log('║         Multi-Page Edition             ║');
+        console.log('║                                        ║');
+        console.log('╚════════════════════════════════════════╝');
+        console.log('');
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+        console.log(`📰 Homepage: http://localhost:${PORT}`);
+        console.log(`📁 Categories: http://localhost:${PORT}/category/sports`);
+        console.log(`🌍 Regions: http://localhost:${PORT}/region/kenya`);
+        console.log(`🔍 Search: http://localhost:${PORT}/search?q=economy`);
+        console.log(`🔧 Health: http://localhost:${PORT}/health`);
+        console.log('');
+        console.log('📡 API Endpoints:');
+        console.log('   GET /api/news');
+        console.log('   GET /api/news/category/:category');
+        console.log('   GET /api/news/region/:region');
+        console.log('   GET /api/search?q=query');
+        console.log('   GET /api/trending');
+        console.log('');
+        console.log('Press Ctrl+C to stop the server');
+        console.log('');
+    });
 
-process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
-    process.exit(0);
-});
+    process.on('SIGTERM', () => {
+        console.log('SIGTERM signal received: closing HTTP server');
+        process.exit(0);
+    });
 
-process.on('SIGINT', () => {
-    console.log('\nSIGINT signal received: closing HTTP server');
-    process.exit(0);
-});
+    process.on('SIGINT', () => {
+        console.log('\nSIGINT signal received: closing HTTP server');
+        process.exit(0);
+    });
+}
+
+const handler = (req, res) => app(req, res);
+
+export { app };
+export default handler;
