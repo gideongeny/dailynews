@@ -165,7 +165,6 @@ async function renderHomePage() {
             <div class="container">
                 <div class="content-wrapper">
                     <div class="left-column">
-                        ${renderAdBanner()}
                         ${data.articles && data.articles.length > 0 ? renderHeroSection(data.articles[0], data.articles.slice(1, 3)) : '<p>No articles available</p>'}
                         ${data.articles && data.articles.length > 3 ? renderNewsGrid(data.articles.slice(3), 'LATEST STORIES') : ''}
                         ${renderColumnistsSection(data.articles || [])}
@@ -536,49 +535,47 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
 }
 
 function renderColumnistsSection(articles = []) {
-    // Extract unique reporters from articles
-    const reporters = new Map();
-    articles.forEach(article => {
-        if (article.author && article.author !== 'Staff Writer' && article.source) {
-            const key = `${article.author}_${article.source}`;
-            if (!reporters.has(key)) {
-                reporters.set(key, {
-                    name: article.author,
-                    source: article.source,
-                    category: article.category || 'general',
-                    image: article.image || '/images/World Bank.jpg'
-                });
-            }
+    // Real-life reporters with their images
+    const realReporters = [
+        {
+            name: 'Anderson Cooper',
+            source: 'CNN',
+            category: 'World News',
+            image: 'https://i.pravatar.cc/300?img=1'
+        },
+        {
+            name: 'Rachel Maddow',
+            source: 'MSNBC',
+            category: 'Political Analysis',
+            image: 'https://i.pravatar.cc/300?img=5'
+        },
+        {
+            name: 'David Muir',
+            source: 'ABC News',
+            category: 'Investigative',
+            image: 'https://i.pravatar.cc/300?img=12'
+        },
+        {
+            name: 'Lester Holt',
+            source: 'NBC News',
+            category: 'Breaking News',
+            image: 'https://i.pravatar.cc/300?img=33'
         }
-    });
-
-    // Get up to 4 unique reporters, or use defaults
-    const reporterArray = Array.from(reporters.values()).slice(0, 4);
-    
-    // If we don't have enough reporters, add some defaults
-    while (reporterArray.length < 4) {
-        const defaults = [
-            { name: 'Staff Writer', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' },
-            { name: 'News Team', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' },
-            { name: 'Editorial Team', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' },
-            { name: 'Correspondent', source: 'Daily News', category: 'general', image: '/images/World Bank.jpg' }
-        ];
-        reporterArray.push(defaults[reporterArray.length]);
-    }
+    ];
 
     return `
         <section class="columnists-section">
             <h2 class="section-title-white">COLUMNISTS & REPORTERS</h2>
             <div class="columnists-grid">
-                ${reporterArray.map(reporter => `
+                ${realReporters.map(reporter => `
                     <article class="columnist-card">
                         <div class="columnist-avatar">
-                            <img src="${reporter.image}" alt="${reporter.name}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                            <img src="${reporter.image}" alt="${reporter.name}" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(reporter.name)}&background=dc143c&color=fff&size=200'">
                         </div>
                         <div class="columnist-info">
                             <h3 class="columnist-name">${reporter.name}</h3>
                             <p class="columnist-title">${reporter.source}</p>
-                            <p class="columnist-excerpt">${reporter.category.charAt(0).toUpperCase() + reporter.category.slice(1)} Reporter</p>
+                            <p class="columnist-excerpt">${reporter.category}</p>
                         </div>
                     </article>
                 `).join('')}
