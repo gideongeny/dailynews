@@ -643,8 +643,8 @@ function formatDate(dateString) {
     }
 }
 
-function updateActiveNav(page) {
-    // Remove active class from all nav items
+function updateActiveNav() {
+    // Remove active class from all nav items first
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.classList.remove('active');
@@ -661,20 +661,12 @@ function updateActiveNav(page) {
         if (currentPath === '/' && (href === '/' || href === '')) {
             item.classList.add('active');
         }
-        // Match category/region routes
+        // Match category/region routes - exact match only
         else if (currentPath.startsWith('/category/') && href === currentPath) {
             item.classList.add('active');
         }
         else if (currentPath.startsWith('/region/') && href === currentPath) {
             item.classList.add('active');
-        }
-        // Match article pages (keep home active)
-        else if (currentPath.startsWith('/article/') && href === '/') {
-            // Don't add active to home when on article page
-        }
-        // Match search page
-        else if (currentPath === '/search' && href === '/') {
-            // Don't add active to home when on search page
         }
     });
 }
@@ -797,18 +789,27 @@ window.addEventListener('DOMContentLoaded', () => {
     const originalNavigate = router.navigate.bind(router);
     router.navigate = function(path) {
         originalNavigate(path);
+        // Update nav after navigation completes
         setTimeout(() => {
             updateActiveNav();
-        }, 100);
+        }, 50);
     };
 
     const originalLoadRoute = router.loadRoute.bind(router);
     router.loadRoute = async function(path) {
         await originalLoadRoute(path);
+        // Update nav after route loads
         setTimeout(() => {
             updateActiveNav();
-        }, 100);
+        }, 50);
     };
+    
+    // Also listen to popstate (browser back/forward)
+    window.addEventListener('popstate', () => {
+        setTimeout(() => {
+            updateActiveNav();
+        }, 50);
+    });
 
     // Load initial route
     const path = window.location.pathname + window.location.search;
