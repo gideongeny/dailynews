@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAILYNEWS - Breaking News & Latest Stories</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <!-- Top Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <h1 class="site-logo">DAILYNEWS</h1>
+            </div>
+            
+            <!-- Top Navigation -->
+            <nav class="top-nav">
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-item" data-page="home">HOME</a></li>
+                    <li><a href="/category/politics" class="nav-item" data-page="politics">POLITICS</a></li>
+                    <li><a href="/category/economy" class="nav-item" data-page="economy">ECONOMY</a></li>
+                    <li><a href="/category/world" class="nav-item" data-page="world">WORLD</a></li>
+                    <li><a href="/category/culture" class="nav-item" data-page="culture">CULTURE</a></li>
+                    <li><a href="/category/business" class="nav-item" data-page="business">BUSINESS</a></li>
+                    <li><a href="/category/sports" class="nav-item" data-page="sports">SPORTS</a></li>
+                    <li><a href="/category/technology" class="nav-item" data-page="technology">TECH</a></li>
+                    <li><a href="/region/kenya" class="nav-item" data-page="kenya">KENYA</a></li>
+                    <li><a href="/region/africa" class="nav-item" data-page="africa">AFRICA</a></li>
+                    <li><a href="/category/health" class="nav-item" data-page="health">HEALTH</a></li>
+                    <li><a href="/category/fashion" class="nav-item" data-page="fashion">FASHION</a></li>
+                    <li><a href="/category/entertainment" class="nav-item" data-page="entertainment">ENTERTAINMENT</a></li>
+                </ul>
+            </nav>
+
+            <!-- Search Bar -->
+            <div class="header-search">
+                <form class="search-form" id="search-form">
+                    <input type="search" placeholder="Search news..." id="search-input" required>
+                    <button type="submit" class="search-btn">🔍</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content-area" id="main-content">
+        <!-- Content will be dynamically loaded here -->
+    </main>
+
+    <!-- Right Side Icons -->
+    <div class="right-icons">
+        <button class="floating-icon chat-icon">💬</button>
+        <button class="floating-icon menu-icon">⋯</button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading news...</p>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+    <script>
+        // Search form handler
+        const searchForm = document.getElementById('search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = document.getElementById('search-input').value;
+                if (query && window.router) {
+                    window.router.navigate(`/search?q=${encodeURIComponent(query)}`);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

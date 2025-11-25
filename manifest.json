@@ -1,0 +1,22 @@
+{
+    "name": "Daily News",
+    "short_name": "Daily News",
+    "description": "Professional news aggregator with live news from Kenya, Africa, and around the world",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#DC143C",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/images/World Bank.jpg",
+            "sizes": "192x192",
+            "type": "image/jpeg"
+        },
+        {
+            "src": "/images/World Bank.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}
