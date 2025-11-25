@@ -106,6 +106,26 @@ If something doesn't work:
 3. Make sure you ran `npm start`
 4. Check that you're going to the right address: `http://localhost:3000`
 
+## Mobile, Tablet & Desktop
+
+The website works perfectly on:
+- 📱 **Mobile phones** (iPhone, Android)
+- 📱 **Tablets** (iPad, Android tablets)
+- 💻 **Desktop computers** (Windows, Mac, Linux)
+
+The design automatically adjusts to fit any screen size!
+
+## Publish Your Website Online
+
+Want to share your website with the world? See `DEPLOY.md` for simple step-by-step instructions to publish it online for free!
+
+Popular options:
+- **Vercel** (easiest, recommended)
+- **Netlify** (also very easy)
+- **Render** (good for backend)
+
+All are free and take just a few minutes to set up!
+
 ## That's All!
 
 You now have a working news website. Just remember:
