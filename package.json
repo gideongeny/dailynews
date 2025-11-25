@@ -3,15 +3,16 @@
     "express": "^5.1.0",
     "node-fetch": "^3.3.2"
   },
-  "name": "newsweek",
+  "name": "dailynews",
   "version": "1.0.0",
-  "main": "script.js",
+  "main": "proxy.mjs",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node proxy.mjs"
+    "start": "node proxy.mjs",
+    "dev": "node proxy.mjs"
   },
-  "keywords": [],
+  "keywords": ["news", "website", "express", "nodejs"],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "Modern news website with real-time updates"
 }
