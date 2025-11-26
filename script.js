@@ -145,6 +145,157 @@ function showError(message) {
 }
 
 // ===========================
+// Live TV Channels
+// ===========================
+
+const LIVE_CHANNELS = [
+    {
+        name: 'Citizen TV Kenya',
+        region: 'Kenya',
+        language: 'English & Swahili',
+        focus: 'National & regional headlines',
+        description: "Kenya's most-watched newsroom streaming politics, economy and special bulletins.",
+        youtubeId: 'CfLSE8zGRww'
+    },
+    {
+        name: 'NBC News NOW',
+        region: 'United States',
+        language: 'English',
+        focus: 'U.S. & global breaking news',
+        description: 'Live coverage from NBC News with rolling updates from correspondents across America.',
+        youtubeId: '7EUX1A3sBOY'
+    },
+    {
+        name: 'Sky News',
+        region: 'United Kingdom',
+        language: 'English',
+        focus: 'Global breaking stories',
+        description: '24/7 international reporting, interviews and analysis direct from London.',
+        youtubeId: 'fjAv8KM0vuQ'
+    },
+    {
+        name: 'ABC News Australia',
+        region: 'Australia',
+        language: 'English',
+        focus: 'Asia-Pacific stories',
+        description: 'In-depth reporting from Australia with a spotlight on Asia-Pacific affairs.',
+        youtubeId: 'vOTiJkg1voo'
+    },
+    {
+        name: 'ABC News (US)',
+        region: 'United States',
+        language: 'English',
+        focus: 'Breaking & special reports',
+        description: 'Live feeds from ABC News including special events, briefings, and documentaries.',
+        youtubeId: 'DTHVVSGss9M'
+    },
+    {
+        name: 'NTV Kenya',
+        region: 'Kenya',
+        language: 'English & Swahili',
+        focus: 'Kenyan news & current affairs',
+        description: 'Nairobi-based coverage of politics, business, lifestyle and investigative stories.',
+        youtubeId: 'gWkhyPxMdEQ'
+    },
+    {
+        name: 'France 24 English',
+        region: 'France',
+        language: 'English',
+        focus: 'Global diplomacy & business',
+        description: 'French perspective on world news, geopolitics, and business innovation.',
+        youtubeId: 'Ap-UM1O9RBU'
+    },
+    {
+        name: 'DW News',
+        region: 'Germany',
+        language: 'English',
+        focus: 'Europe & world updates',
+        description: 'Deutsche Welle reports from Berlin with expert explainers on Europe and beyond.',
+        youtubeId: 'LuKwFajn37U'
+    },
+    {
+        name: 'Bloomberg Television',
+        region: 'United States',
+        language: 'English',
+        focus: 'Markets & finance',
+        description: 'Real-time market data, CEO interviews, and deep dives into the global economy.',
+        youtubeId: 'iEpJwprxDdk'
+    },
+    {
+        name: 'Al Jazeera English',
+        region: 'Qatar',
+        language: 'English',
+        focus: 'Global south & conflict reporting',
+        description: 'Breaking stories from the Middle East, Africa, and the wider world.',
+        youtubeId: 'gCNeDWCI0vo'
+    },
+    {
+        name: 'CNA (Channel NewsAsia)',
+        region: 'Singapore',
+        language: 'English',
+        focus: 'Asian markets & policy',
+        description: 'Newsroom dedicated to ASEAN, technology and business developments.',
+        youtubeId: 'XWq5kBlakcQ'
+    },
+    {
+        name: 'Africanews English',
+        region: 'Africa',
+        language: 'English',
+        focus: 'Pan-African coverage',
+        description: 'Live bulletins from reporters stationed across the African continent.',
+        youtubeId: 'NQjabLGdP5g'
+    },
+    {
+        name: 'CGTN',
+        region: 'China',
+        language: 'English',
+        focus: 'China & Belt and Road stories',
+        description: 'Global vision from Beijing with culture, business, and diplomacy highlights.',
+        youtubeId: '5lSWGQgut3w'
+    },
+    {
+        name: 'BBC News',
+        region: 'United Kingdom',
+        language: 'English',
+        focus: 'Global public service journalism',
+        description: 'Trusted worldwide for impartial reporting and special coverage.',
+        youtubeId: '9Auq9mYxFEE'
+    },
+    {
+        name: 'TRT World',
+        region: 'Turkey',
+        language: 'English',
+        focus: 'Eurasia & Middle East analysis',
+        description: 'Istanbul-based desk covering diplomacy, development and culture.',
+        youtubeId: 'QxoUv_mzj6Q'
+    },
+    {
+        name: 'Euronews English',
+        region: 'Europe',
+        language: 'English',
+        focus: 'European institutions & culture',
+        description: 'Multi-lingual newsroom highlighting EU policy, travel and science.',
+        youtubeId: 'pykpO5kN6Z8'
+    },
+    {
+        name: 'NHK World-Japan',
+        region: 'Japan',
+        language: 'English',
+        focus: 'Japan & Asia-Pacific',
+        description: 'Public broadcaster bringing Japanese innovation, culture, and emergency alerts.',
+        youtubeId: 'WT0jpn21B6I'
+    },
+    {
+        name: 'CBS News',
+        region: 'United States',
+        language: 'English',
+        focus: 'US politics & investigations',
+        description: 'Breaking news from CBS News, including Capitol Hill and Weather Center updates.',
+        youtubeId: '9-1rHYmjOg8'
+    }
+];
+
+// ===========================
 // Page Renderers
 // ===========================
 
@@ -692,6 +843,9 @@ function updateActiveNav() {
         else if (currentPath.startsWith('/region/') && href === currentPath) {
             item.classList.add('active');
         }
+        else if (href === currentPath) {
+            item.classList.add('active');
+        }
     });
 }
 
@@ -708,6 +862,7 @@ router.addRoute('/region/:name', renderRegionPage);
 router.addRoute('/article/:id', renderArticlePage);
 router.addRoute('/search', renderSearchPage);
 router.addRoute('/bookmarks', renderBookmarksPage);
+router.addRoute('/watch', renderWatchPage);
 router.addRoute('/about', renderAboutPage);
 router.addRoute('/contact', renderContactPage);
 router.addRoute('/advertise', renderAdvertisePage);
@@ -1204,6 +1359,59 @@ function attachTabHandlers() {
             }
         });
     });
+}
+
+// ===========================
+// Watch Page
+// ===========================
+
+function renderWatchPage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
+        <div class="container">
+            <section class="watch-hero">
+                <div class="watch-highlight">
+                    <span>📺 ${LIVE_CHANNELS.length}+ verified streams</span>
+                    <span>🌍 Africa + Global coverage</span>
+                </div>
+                <h1>Watch Live News</h1>
+                <p>Stream trusted newsrooms from Kenya, Africa, and the rest of the world without leaving DAILYNEWS. Every channel below is embedded directly from its official YouTube feed.</p>
+            </section>
+            <section class="watch-grid">
+                ${LIVE_CHANNELS.map(channel => `
+                    <article class="watch-card">
+                        <div class="watch-card-header">
+                            <span class="watch-badge">${channel.region}</span>
+                            <h3>${channel.name}</h3>
+                            <small>${channel.language} · ${channel.focus}</small>
+                        </div>
+                        <div class="watch-player">
+                            <iframe
+                                src="https://www.youtube.com/embed/${channel.youtubeId}?rel=0"
+                                title="${channel.name} live stream"
+                                loading="lazy"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowfullscreen
+                            ></iframe>
+                        </div>
+                        <p>${channel.description}</p>
+                        <div class="watch-links">
+                            <a href="https://www.youtube.com/watch?v=${channel.youtubeId}" target="_blank" rel="noopener">Open in YouTube ↗</a>
+                            <span>Live 24/7</span>
+                        </div>
+                    </article>
+                `).join('')}
+            </section>
+            <section class="watch-suggestion">
+                <strong>Missing a channel?</strong>
+                <p>Send the link to <a href="mailto:gideongeng@gmail.com?subject=Add%20Live%20Channel">gideongeng@gmail.com</a> or drop a request on the <a href="/contact">contact page</a> and we'll add it.</p>
+            </section>
+        </div>
+    `;
+
+    updateActiveNav();
 }
 
 // ===========================

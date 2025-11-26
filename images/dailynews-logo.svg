@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="dnGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dc143c"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="80" fill="#0d1117"/>
+  <rect x="32" y="32" width="448" height="448" rx="64" fill="url(#dnGradient)" opacity="0.08"/>
+  <path d="M96 128h320v256H96z" fill="none" stroke="url(#dnGradient)" stroke-width="12" stroke-linejoin="round"/>
+  <text x="256" y="280" font-family="Playfair Display, 'Inter', Arial, sans-serif" font-size="190" font-weight="900" text-anchor="middle" fill="#ffffff">DN</text>
+  <text x="256" y="360" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="600" letter-spacing="8" text-anchor="middle" fill="#ffffff">DAILYNEWS</text>
+</svg>
+

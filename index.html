@@ -10,8 +10,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/images/dailynews-logo.svg">
+    <link rel="apple-touch-icon" href="/images/dailynews-logo.svg">
+    <meta property="og:image" content="/images/dailynews-logo.svg">
+    <meta name="twitter:image" content="/images/dailynews-logo.svg">
     <link rel="stylesheet" href="/style.css">
     <script defer src="https://vercel.live/api/script.js"></script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "NewsMediaOrganization",
+            "name": "DAILYNEWS",
+            "url": "https://dailynews.africa",
+            "logo": "https://dailynews.africa/images/dailynews-logo.svg",
+            "sameAs": [
+                "https://www.facebook.com/",
+                "https://twitter.com/"
+            ]
+        }
+    </script>
    
 </head>
 
@@ -20,7 +37,13 @@
     <header class="main-header">
         <div class="header-container">
             <div class="logo-section">
-                <h1 class="site-logo">DAILYNEWS</h1>
+                <a href="/" class="logo-link">
+                    <img src="/images/dailynews-logo.svg" alt="DAILYNEWS logo" class="logo-mark">
+                    <div class="logo-text-group">
+                        <span class="site-logo">DAILYNEWS</span>
+                        <span class="logo-tagline">Breaking stories every hour</span>
+                    </div>
+                </a>
             </div>
             
             <!-- Top Navigation -->
@@ -34,6 +57,7 @@
                     <li><a href="/category/business" class="nav-item" data-page="business">BUSINESS</a></li>
                     <li><a href="/category/sports" class="nav-item" data-page="sports">SPORTS</a></li>
                     <li><a href="/category/technology" class="nav-item" data-page="technology">TECH</a></li>
+                    <li><a href="/watch" class="nav-item" data-page="watch">WATCH</a></li>
                     <li><a href="/region/kenya" class="nav-item" data-page="kenya">KENYA</a></li>
                     <li><a href="/region/africa" class="nav-item" data-page="africa">AFRICA</a></li>
                     <li><a href="/category/health" class="nav-item" data-page="health">HEALTH</a></li>
