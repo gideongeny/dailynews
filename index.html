@@ -136,8 +136,8 @@
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = document.getElementById('search-input').value;
-                if (query && window.router) {
-                    window.router.navigate(`/search?q=${encodeURIComponent(query)}`);
+                if (query && globalThis.router) {
+                    globalThis.router.navigate(`/search?q=${encodeURIComponent(query)}`);
                 }
             });
         }
