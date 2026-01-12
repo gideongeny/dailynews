@@ -1,6 +1,176 @@
 // ===========================
 // Client-Side Router
 // ===========================
+console.log('✅ LOADING SCRIPT v1.1.1 [NEWEST]');
+
+// ===========================
+// Content Validation & Quality
+// ===========================
+
+// Category-specific placeholder images
+const CATEGORY_PLACEHOLDERS = {
+    politics: '/images/Kenya Parliament.jpg',
+    business: '/images/World Bank.jpg',
+    technology: '/images/Safaricom rolls out 5G across Kenya.jpg',
+    sports: '/images/Olunga sets national record in 100 m.jpg',
+    culture: '/images/Maasai Olympics empower women.webp',
+    health: '/images/World Bank.jpg',
+    general: '/images/World Bank.jpg',
+    world: '/images/World Bank.jpg',
+    entertainment: '/images/Kenyans ring in New Year with nyama choma.jpg'
+};
+
+function getCategoryPlaceholder(category) {
+    return CATEGORY_PLACEHOLDERS[category?.toLowerCase()] || CATEGORY_PLACEHOLDERS.general;
+}
+
+function generateExcerpt(title, minLength = 50) {
+    if (!title) return 'Read the full article for more details.';
+
+    // If title is long enough, use it
+    if (title.length >= minLength) {
+        return title + '...';
+    }
+
+    // Otherwise, add context
+    return `${title}. Click to read the full story and stay informed on the latest developments.`;
+}
+
+function validateArticle(article) {
+    if (!article) return false;
+
+    // Must have a title
+    if (!article.title || article.title.trim().length < 10) {
+        console.log('❌ [VALIDATION] Article rejected: title too short or missing');
+        return false;
+    }
+
+    // Must have a URL
+    if (!article.url || !article.url.startsWith('http')) {
+        console.log('❌ [VALIDATION] Article rejected: invalid URL');
+        return false;
+    }
+
+    // Description should exist and be meaningful
+    if (!article.description || article.description.trim().length < 20) {
+        console.log('⚠️ [VALIDATION] Article has short description, will generate fallback');
+        article.description = generateExcerpt(article.title);
+    }
+
+    // Ensure image exists
+    if (!article.image || article.image === 'null' || article.image === '') {
+        console.log('⚠️ [VALIDATION] Article missing image, using category placeholder');
+        article.image = getCategoryPlaceholder(article.category);
+    }
+
+    // Ensure category exists
+    if (!article.category) {
+        article.category = 'general';
+    }
+
+    // Ensure source exists
+    if (!article.source) {
+        article.source = 'News Source';
+    }
+
+    return true;
+}
+
+// HTML Sanitization & Text Cleanup
+function stripHtmlTags(html) {
+    if (!html) return '';
+    // Create a temporary div to parse HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || '';
+}
+
+function decodeHtmlEntities(text) {
+    if (!text) return '';
+    const temp = document.createElement('textarea');
+    temp.innerHTML = text;
+    return temp.value;
+}
+
+function cleanDescription(description) {
+    if (!description) return '';
+
+    // Decode HTML entities
+    let cleaned = decodeHtmlEntities(description);
+
+    // Strip HTML tags
+    cleaned = stripHtmlTags(cleaned);
+
+    // Remove excessive whitespace and newlines
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+    // Remove "Continue reading..." and similar phrases
+    cleaned = cleaned.replace(/Continue reading\.\.\.?$/i, '');
+    cleaned = cleaned.replace(/Read more\.\.\.?$/i, '');
+    cleaned = cleaned.replace(/\[\.\.\.]$/i, '');
+
+    // Limit length
+    if (cleaned.length > 200) {
+        cleaned = cleaned.substring(0, 200).trim() + '...';
+    }
+
+    return cleaned.trim();
+}
+
+// Advanced Deduplication using Similarity Matching
+function calculateSimilarity(str1, str2) {
+    if (!str1 || !str2) return 0;
+
+    // Convert to lowercase for comparison
+    const s1 = str1.toLowerCase();
+    const s2 = str2.toLowerCase();
+
+    // Quick exact match
+    if (s1 === s2) return 1;
+
+    // Calculate Levenshtein distance (simplified)
+    const longer = s1.length > s2.length ? s1 : s2;
+    const shorter = s1.length > s2.length ? s2 : s1;
+
+    if (longer.length === 0) return 1.0;
+
+    // Simple word overlap similarity
+    const words1 = new Set(s1.split(/\s+/));
+    const words2 = new Set(s2.split(/\s+/));
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+
+    return intersection.size / union.size;
+}
+
+function deduplicateArticles(articles) {
+    const unique = [];
+    const seenTitles = new Map();
+
+    for (const article of articles) {
+        let isDuplicate = false;
+
+        // Check against existing articles
+        for (const [existingTitle, existingArticle] of seenTitles) {
+            const similarity = calculateSimilarity(article.title, existingTitle);
+
+            // If similarity > 70%, consider it a duplicate
+            if (similarity > 0.7) {
+                isDuplicate = true;
+                console.log(`🔄 [DEDUP] Skipping duplicate: "${article.title}" (similar to "${existingTitle}")`);
+                break;
+            }
+        }
+
+        if (!isDuplicate) {
+            unique.push(article);
+            seenTitles.set(article.title, article);
+        }
+    }
+
+    console.log(`✅ [DEDUP] Kept ${unique.length} unique articles out of ${articles.length} total`);
+    return unique;
+}
 
 class Router {
     constructor() {
@@ -36,7 +206,14 @@ class Router {
     }
 
     async loadRoute(path) {
-        const [pathname, search] = path.split('?');
+        // Normalize index.html to /
+        let [pathname, search] = path.split('?');
+        if (pathname.endsWith('/index.html')) {
+            pathname = pathname.replace(/\/index\.html$/, '/');
+        } else if (pathname === 'index.html') {
+            pathname = '/';
+        }
+
         const params = new URLSearchParams(search);
 
         // Match route
@@ -96,23 +273,312 @@ class Router {
 // ===========================
 
 async function fetchAPI(endpoint) {
+    let response;
     try {
         showLoading();
-        const response = await fetch(endpoint);
+        response = await fetch(endpoint);
+
+        // If we get a non-OK response, throw to trigger fallback logic
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        // Check if content type is JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("API returned non-JSON response (likely a 404 HTML page)");
+        }
+
         const data = await response.json();
         hideLoading();
 
         if (data.status === 'success') {
             return data;
         } else {
-            throw new Error(data.message || 'API request failed');
+            throw new Error(data.message || 'API response status was not success');
         }
     } catch (error) {
-        hideLoading();
-        console.error('API Error:', error);
-        // Don't show error for every failed request, just log it
-        throw error;
+        console.log('🚨 [TRACE] PRIMARY API FAILED. STARTING FALLBACK...', error.message);
+
+        // Fallback: Fetch directly from multiple sources (Frontend Fallback)
+        try {
+            if (endpoint.includes('/api/news') || endpoint.includes('/api/trending')) {
+                console.log('📡 [TRACE] Entering multi-source aggregation for:', endpoint);
+
+                const newsDataApiKey = 'pub_1d543e32d71f4487ba93652287a90acc';
+                const nyTimesApiKey = 'HRdesBbmlbUI9b8laRNMAaGSvFEIa6dLhv4rWOP35WywiJGHqRmc2Pmb6QBARWxR';
+                const theNewsApiKey = '2-Q_c0ydZgil3Ti859SjE1HiJxBJ6V4lQCNEUCJLJ0S65bfV';
+
+                // Construct NewsData URL
+                let newsDataUrl = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&language=en`;
+                if (endpoint.includes('category/')) {
+                    const category = endpoint.split('category/')[1];
+                    newsDataUrl += `&category=${category}`;
+                } else if (endpoint.includes('search?q=')) {
+                    const query = endpoint.split('search?q=')[1];
+                    newsDataUrl += `&q=${query}`;
+                }
+
+                // Construct NYTimes URL
+                let nyTimesUrl = `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${nyTimesApiKey}`;
+                if (endpoint.includes('category/')) {
+                    const category = endpoint.split('category/')[1];
+                    const section = category === 'politics' ? 'politics' :
+                        category === 'business' ? 'business' :
+                            category === 'sports' ? 'sports' : 'home';
+                    nyTimesUrl = `https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${nyTimesApiKey}`;
+                }
+
+                // Construct TheNewsAPI URL
+                let theNewsUrl = `https://api.thenewsapi.com/v1/news/top?api_token=${theNewsApiKey}&locale=us&limit=5&language=en`;
+                if (endpoint.includes('category/')) {
+                    const category = endpoint.split('category/')[1];
+                    theNewsUrl += `&categories=${category}`;
+                } else if (endpoint.includes('search?q=')) {
+                    const query = endpoint.split('search?q=')[1];
+                    theNewsUrl += `&search=${query}`;
+                }
+
+                // RSS Feeds via rss2json proxy (No API keys needed!)
+                const rssFeedsToFetch = [
+                    'http://feeds.bbci.co.uk/news/world/rss.xml',           // BBC World News
+                    'http://rss.cnn.com/rss/edition_world.rss',             // CNN World
+                    'https://www.theguardian.com/world/rss',                // Guardian World
+                    'https://www.aljazeera.com/xml/rss/all.xml',            // Al Jazeera
+                    'https://feeds.reuters.com/reuters/topNews'             // Reuters Top News
+                ];
+
+                const rssProxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+                const safeFetchJson = (url) => fetch(url)
+                    .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+                    .catch(e => {
+                        console.log(`📡 [TRACE] Fetch failed for ${url.substring(0, 40)}... :`, e);
+                        return null;
+                    });
+
+                const results = await Promise.all([
+                    safeFetchJson(newsDataUrl),
+                    safeFetchJson(nyTimesUrl),
+                    safeFetchJson(theNewsUrl),
+                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[0])), // BBC
+                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[1])), // CNN
+                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[2])), // Guardian
+                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[3])), // Al Jazeera
+                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[4]))  // Reuters
+                ]);
+
+                console.log('📊 [TRACE] API Results Summary:', results.map(r => r ? 'SUCCESS' : 'FAIL'));
+                let aggregatedArticles = [];
+
+                // Process NewsData
+                if (results[0] && results[0].results) {
+                    const newsDataArticles = results[0].results.map(a => ({
+                        id: a.article_id || Math.random().toString(36).substr(2, 9),
+                        title: a.title,
+                        description: a.description || 'No description available',
+                        content: a.content || a.description || '',
+                        url: a.link,
+                        image: a.image_url || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: a.source_id?.toUpperCase() || 'NEWSDATA',
+                        category: a.category?.[0] || 'general',
+                        author: a.creator?.[0] || 'Staff Writer'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...newsDataArticles];
+                }
+
+                // Process NYTimes
+                if (results[1] && results[1].results) {
+                    const nyTimesArticles = results[1].results.map(a => {
+                        const multimedia = a.multimedia || [];
+                        let imageUrl = '/images/World Bank.jpg';
+                        if (multimedia.length > 0) imageUrl = multimedia[0].url;
+
+                        return {
+                            id: Math.random().toString(36).substr(2, 9),
+                            title: a.title,
+                            description: a.abstract || 'No description available',
+                            content: a.abstract || '',
+                            url: a.url,
+                            image: imageUrl,
+                            publishedAt: a.published_date || new Date().toISOString(),
+                            source: 'THE NEW YORK TIMES',
+                            category: a.section || 'world',
+                            author: a.byline || 'NYT'
+                        };
+                    });
+                    aggregatedArticles = [...aggregatedArticles, ...nyTimesArticles];
+                }
+
+                // Process TheNewsAPI
+                if (results[2] && results[2].data) {
+                    const theNewsArticles = results[2].data.map(a => ({
+                        id: a.uuid,
+                        title: a.title,
+                        description: a.description || 'No description available',
+                        content: a.content || '',
+                        url: a.url,
+                        image: a.image_url || '/images/World Bank.jpg',
+                        publishedAt: a.published_at,
+                        source: a.source?.toUpperCase() || 'THENEWSAPI',
+                        category: a.categories?.[0] || 'general',
+                        author: 'Reporter'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...theNewsArticles];
+                }
+
+                // Process BBC RSS (results[3])
+                if (results[3] && results[3].items) {
+                    const bbcArticles = results[3].items.slice(0, 10).map(a => ({
+                        id: a.guid || Math.random().toString(36).substr(2, 9),
+                        title: cleanDescription(a.title),
+                        description: cleanDescription(a.description || a.content) || 'Read the full story on BBC News',
+                        content: cleanDescription(a.content || a.description) || '',
+                        url: a.link,
+                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: 'BBC NEWS',
+                        category: 'world',
+                        author: 'BBC News'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...bbcArticles];
+                }
+
+                // Process CNN RSS (results[4])
+                if (results[4] && results[4].items) {
+                    const cnnArticles = results[4].items.slice(0, 10).map(a => ({
+                        id: a.guid || Math.random().toString(36).substr(2, 9),
+                        title: cleanDescription(a.title),
+                        description: cleanDescription(a.description || a.content) || 'Read the full story on CNN',
+                        content: cleanDescription(a.content || a.description) || '',
+                        url: a.link,
+                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: 'CNN',
+                        category: 'world',
+                        author: 'CNN'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...cnnArticles];
+                }
+
+                // Process Guardian RSS (results[5])
+                if (results[5] && results[5].items) {
+                    const guardianArticles = results[5].items.slice(0, 10).map(a => ({
+                        id: a.guid || Math.random().toString(36).substr(2, 9),
+                        title: cleanDescription(a.title),
+                        description: cleanDescription(a.description || a.content) || 'Read the full story on The Guardian',
+                        content: cleanDescription(a.content || a.description) || '',
+                        url: a.link,
+                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: 'THE GUARDIAN',
+                        category: 'world',
+                        author: 'The Guardian'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...guardianArticles];
+                }
+
+                // Process Al Jazeera RSS (results[6])
+                if (results[6] && results[6].items) {
+                    const alJazeeraArticles = results[6].items.slice(0, 10).map(a => ({
+                        id: a.guid || Math.random().toString(36).substr(2, 9),
+                        title: cleanDescription(a.title),
+                        description: cleanDescription(a.description || a.content) || 'Read the full story on Al Jazeera',
+                        content: cleanDescription(a.content || a.description) || '',
+                        url: a.link,
+                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: 'AL JAZEERA',
+                        category: 'world',
+                        author: 'Al Jazeera'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...alJazeeraArticles];
+                }
+
+                // Process Reuters RSS (results[7])
+                if (results[7] && results[7].items) {
+                    const reutersArticles = results[7].items.slice(0, 10).map(a => ({
+                        id: a.guid || Math.random().toString(36).substr(2, 9),
+                        title: cleanDescription(a.title),
+                        description: cleanDescription(a.description || a.content) || 'Read the full story on Reuters',
+                        content: cleanDescription(a.content || a.description) || '',
+                        url: a.link,
+                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: 'REUTERS',
+                        category: 'world',
+                        author: 'Reuters'
+                    }));
+                    aggregatedArticles = [...aggregatedArticles, ...reutersArticles];
+                }
+
+                console.log('📈 [TRACE] Total Aggregated Articles (before validation):', aggregatedArticles.length);
+
+                // Validate and filter articles
+                aggregatedArticles = aggregatedArticles.filter(validateArticle);
+                console.log('✅ [TRACE] Valid Articles After Filtering:', aggregatedArticles.length);
+
+                // Deduplicate articles
+                aggregatedArticles = deduplicateArticles(aggregatedArticles);
+
+                hideLoading();
+
+                if (aggregatedArticles.length > 0) {
+                    console.log('✅ [TRACE] Returning aggregated articles.');
+                    // Sort by date
+                    aggregatedArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+                    // Basic de-duplication by title
+                    const seenTitles = new Set();
+                    aggregatedArticles = aggregatedArticles.filter(item => {
+                        if (seenTitles.has(item.title)) return false;
+                        seenTitles.add(item.title);
+                        return true;
+                    });
+
+                    return {
+                        status: 'success',
+                        articles: aggregatedArticles
+                    };
+                }
+                throw new Error('No results from any direct API');
+            }
+
+            // Final Fallback: Mock Data
+            hideLoading();
+            console.log('🧱 [TRACE] Fallback returned empty or wrong endpoint. Using mocks.');
+            return {
+                status: 'success',
+                articles: getMockArticles(12),
+                count: 12
+            };
+        } catch (fallbackError) {
+            hideLoading();
+            console.error('💣 [TRACE] FINAL FALLBACK ERROR:', fallbackError);
+            return {
+                status: 'success',
+                articles: getMockArticles(12),
+                count: 12
+            };
+        }
     }
+}
+
+// Minimal mock data generator for frontend fallback
+function getMockArticles(count) {
+    return Array.from({ length: count }, (_, i) => ({
+        id: `mock-${i}`,
+        title: `Example News Article ${i + 1}`,
+        description: 'This is a fallback description shown because the backend API is currently unavailable. Please check your Firebase billing or proxy settings.',
+        content: 'Full content unavailable in fallback mode.',
+        url: '#',
+        image: '/images/World Bank.jpg',
+        publishedAt: new Date().toISOString(),
+        source: 'Fallback System',
+        category: 'general',
+        author: 'System'
+    }));
 }
 
 function showLoading() {
@@ -888,6 +1354,7 @@ const router = new Router();
 
 // Define routes
 router.addRoute('/', renderHomePage);
+router.addRoute('/index.html', renderHomePage);
 router.addRoute('/category/:name', renderCategoryPage);
 router.addRoute('/region/:name', renderRegionPage);
 router.addRoute('/article/:id', renderArticlePage);
@@ -1294,9 +1761,14 @@ function showToast(message, duration = 3000) {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
+        // Disabled active registration to avoid persistent caching issues
+        // We rely on the self-destructing sw.js to unregister itself if it exists
+        /*
         navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('✅ Service Worker registered'))
             .catch(err => console.log('❌ Service Worker registration failed:', err));
+        */
+        console.log('🚮 Service Worker registration intentionally disabled for v1.1.1');
     });
 }
 

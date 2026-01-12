@@ -515,6 +515,82 @@ img {
     border-top: 1px solid #f0f0f0;
 }
 
+/* Source Badge */
+.news-source-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(16, 106, 191, 0.95);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* Different colors for different sources */
+.news-source-badge.bbc {
+    background: rgba(187, 24, 24, 0.95);
+}
+
+.news-source-badge.cnn {
+    background: rgba(204, 0, 0, 0.95);
+}
+
+.news-source-badge.guardian {
+    background: rgba(5, 125, 188, 0.95);
+}
+
+.news-source-badge.aljazeera {
+    background: rgba(242, 108, 33, 0.95);
+}
+
+.news-source-badge.reuters {
+    background: rgba(255, 102, 0, 0.95);
+}
+
+.news-source-badge.nytimes {
+    background: rgba(0, 0, 0, 0.95);
+}
+
+/* Read More Button */
+.news-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: var(--color-primary);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(16, 106, 191, 0.2);
+}
+
+.news-read-more:hover {
+    background: var(--color-primary-dark);
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(16, 106, 191, 0.3);
+}
+
+.news-read-more::after {
+    content: '→';
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.news-read-more:hover::after {
+    transform: translateX(3px);
+}
+
 /* ==== Right Column ==== */
 .right-column {
     display: flex;
@@ -1679,5 +1755,113 @@ img {
 
     .news-image {
         height: 180px;
+    }
+}
+
+/* ==== Newsletter Section ==== */
+.footer-newsletter {
+    background: linear-gradient(135deg, #106abf 0%, #0d5a9e 100%);
+    padding: 50px 40px;
+    border-radius: 16px;
+    margin-bottom: 50px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(16, 106, 191, 0.25);
+}
+
+.footer-newsletter h3 {
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.footer-newsletter p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1rem;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.newsletter-input {
+    flex: 1;
+    min-width: 300px;
+    padding: 16px 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.newsletter-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.newsletter-input:focus {
+    outline: none;
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.newsletter-btn {
+    padding: 16px 40px;
+    background: #ec3838;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(236, 56, 56, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.newsletter-btn:hover {
+    background: #d42f2f;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(236, 56, 56, 0.5);
+}
+
+.newsletter-btn:active {
+    transform: translateY(-1px);
+}
+
+.newsletter-status {
+    margin-top: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    min-height: 24px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .newsletter-form {
+        flex-direction: column;
+    }
+
+    .newsletter-input {
+        min-width: 100%;
+    }
+
+    .newsletter-btn {
+        width: 100%;
     }
 }

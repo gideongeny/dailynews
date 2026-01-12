@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>FORCE UPDATE v1.1.1</title>
+</head>
+
+<body>
+    <h1>FORCE UPDATE v1.1.1</h1>
+    <p>If you see this, the latest deployment is active.</p>
+    <script src="/script.js?v=1.1.1"></script>
+    <script>
+        console.log('✅ FORCE UPDATE PAGE LOADED');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                for (let reg of regs) reg.unregister();
+                console.log('🚮 All Service Workers Unregistered');
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2 @@
+DEPLOYMENT_VERIFICATION_v1.1.1_TIMESTAMP_1768250912
+If you see this, the public folder is being correctly deployed.
