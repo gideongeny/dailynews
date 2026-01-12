@@ -9,7 +9,9 @@
     <title>DAILYNEWS - Breaking News & Latest Stories</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/images/dailynews-logo.svg">
     <link rel="apple-touch-icon" href="/images/dailynews-logo.svg">
     <meta property="og:image" content="/images/dailynews-logo.svg">
@@ -29,51 +31,68 @@
             ]
         }
     </script>
-   
+
 </head>
 
 <body>
     <!-- Top Header -->
-    <header class="main-header">
-        <div class="header-container">
-            <div class="logo-section">
-                <a href="/" class="logo-link">
-                    <img src="/images/dailynews-logo.svg" alt="DAILYNEWS logo" class="logo-mark">
-                    <div class="logo-text-group">
-                        <span class="site-logo">DAILYNEWS</span>
-                        <span class="logo-tagline">Breaking stories every hour</span>
+    <!-- Main Header Wrapper -->
+    <header class="site-header">
+        <!-- 1. Top Bar -->
+        <div class="top-bar">
+            <div class="container top-bar-inner">
+                <div class="top-bar-left">
+                    <span class="current-date" id="current-date">Sunday, January 12, 2026</span>
+                    <a href="#" class="top-link">Trending</a>
+                </div>
+                <div class="top-bar-right">
+                    <a href="#" class="top-link">Sign In</a>
+                    <a href="#" class="top-link">Subscribe</a>
+                    <div class="social-icons-small">
+                        <a href="#" aria-label="Facebook">F</a>
+                        <a href="#" aria-label="Twitter">T</a>
+                        <a href="#" aria-label="Instagram">I</a>
                     </div>
-                </a>
-            </div>
-            
-            <!-- Top Navigation -->
-            <nav class="top-nav">
-                <ul class="nav-menu">
-                    <li><a href="/" class="nav-item" data-page="home">HOME</a></li>
-                    <li><a href="/category/politics" class="nav-item" data-page="politics">POLITICS</a></li>
-                    <li><a href="/category/economy" class="nav-item" data-page="economy">ECONOMY</a></li>
-                    <li><a href="/category/world" class="nav-item" data-page="world">WORLD</a></li>
-                    <li><a href="/category/culture" class="nav-item" data-page="culture">CULTURE</a></li>
-                    <li><a href="/category/business" class="nav-item" data-page="business">BUSINESS</a></li>
-                    <li><a href="/category/sports" class="nav-item" data-page="sports">SPORTS</a></li>
-                    <li><a href="/category/technology" class="nav-item" data-page="technology">TECH</a></li>
-                    <li><a href="/watch" class="nav-item" data-page="watch">WATCH</a></li>
-                    <li><a href="/region/kenya" class="nav-item" data-page="kenya">KENYA</a></li>
-                    <li><a href="/region/africa" class="nav-item" data-page="africa">AFRICA</a></li>
-                    <li><a href="/category/health" class="nav-item" data-page="health">HEALTH</a></li>
-                    <li><a href="/category/fashion" class="nav-item" data-page="fashion">FASHION</a></li>
-                    <li><a href="/category/entertainment" class="nav-item" data-page="entertainment">ENTERTAINMENT</a></li>
-                </ul>
-            </nav>
-
-            <!-- Search Bar -->
-            <div class="header-search">
-                <form class="search-form" id="search-form">
-                    <input type="search" placeholder="Search news..." id="search-input" required>
-                    <button type="submit" class="search-btn">🔍</button>
-                </form>
+                </div>
             </div>
         </div>
+
+        <!-- 2. Logo & Branding Area -->
+        <div class="branding-area">
+            <div class="container branding-inner">
+                <div class="mobile-menu-trigger">
+                    <span></span><span></span><span></span>
+                </div>
+
+                <a href="/" class="site-branding">
+                    <h1 class="site-title">DAILY<span class="highlight">NEWS</span></h1>
+                    <p class="site-description">The heartbeat of the world</p>
+                </a>
+
+                <div class="header-search-trigger">
+                    <button class="search-toggle">🔍</button>
+                    <!-- Search input hidden by default or expanded -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Main Navigation Bar -->
+        <nav class="main-navigation">
+            <div class="container nav-container">
+                <ul class="nav-menu">
+                    <li><a href="/" class="nav-item active">HOME</a></li>
+                    <li><a href="/category/politics" class="nav-item">POLITICS</a></li>
+                    <li><a href="/category/business" class="nav-item">BUSINESS</a></li>
+                    <li><a href="/category/technology" class="nav-item">TECHNOLOGY</a></li>
+                    <li><a href="/category/culture" class="nav-item">CULTURE</a></li>
+                    <li><a href="/category/sports" class="nav-item">SPORTS</a></li>
+                    <li><a href="/category/health" class="nav-item">HEALTH</a></li>
+                    <li><a href="/category/opinion" class="nav-item">OPINION</a></li>
+                    <li><a href="/video" class="nav-item">VIDEO</a></li>
+                </ul>
+                <div class="nav-divider"></div>
+            </div>
+        </nav>
     </header>
 
     <!-- Main Content Area -->
@@ -101,7 +120,8 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>DAILYNEWS</h3>
-                    <p>Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events from Kenya, Africa, and around the world.</p>
+                    <p>Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events
+                        from Kenya, Africa, and around the world.</p>
                 </div>
                 <div class="footer-section">
                     <h4>Quick Links</h4>
@@ -115,7 +135,8 @@
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <p>Email: <a href="mailto:gideongeng@gmail.com">gideongeng@gmail.com</a></p>
-                    <p>Report an Issue: <a href="mailto:gideongeng@gmail.com?subject=Report%20Issue">gideongeng@gmail.com</a></p>
+                    <p>Report an Issue: <a
+                            href="mailto:gideongeng@gmail.com?subject=Report%20Issue">gideongeng@gmail.com</a></p>
                 </div>
             </div>
             <div class="footer-bottom">

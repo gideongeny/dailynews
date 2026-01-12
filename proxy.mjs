@@ -281,40 +281,148 @@ function getMockNews(category = 'general', count = 12) {
     return mockArticles.slice(0, count);
 }
 
+async function fetchFromMediastack(params) {
+    const url = new URL(NEWS_CONFIG.MEDIASTACK_BASE_URL);
+    url.searchParams.append('access_key', NEWS_CONFIG.MEDIASTACK_KEY);
+    url.searchParams.append('languages', 'en');
+    url.searchParams.append('limit', '25');
+
+    if (params.category) url.searchParams.append('categories', params.category);
+    if (params.country && params.country !== 'global') url.searchParams.append('countries', params.country);
+    if (params.q) url.searchParams.append('keywords', params.q);
+
+    console.log(`🌐 Fetching from Mediastack: ${url.toString().replace(NEWS_CONFIG.MEDIASTACK_KEY, 'API_KEY')}`);
+
+    const response = await fetch(url.toString());
+    const data = await response.json();
+
+    if (data.data) {
+        return data.data.map(article => ({
+            id: Math.random().toString(36).slice(2, 11),
+            title: article.title,
+            description: article.description || 'No description available',
+            content: article.description || '', // Mediastack often doesn't give full content
+            url: article.url,
+            image: article.image || '/images/World Bank.jpg',
+            publishedAt: article.published_at,
+            source: article.source || 'Mediastack',
+            category: article.category || params.category || 'general',
+            author: article.author || 'Staff Writer',
+            country: article.country || params.country || 'global'
+        }));
+    }
+    throw new Error('Failed to fetch from Mediastack');
+}
+
+async function fetchFromNYTimes(params) {
+    // NYTimes has different endpoints for Search vs Top Stories
+    // For specific search/category we use Search API, for general/home we use Top Stories
+    let url;
+    if (params.q) {
+        url = new URL('https://api.nytimes.com/svc/search/v2/articlesearch.json');
+        url.searchParams.append('q', params.q);
+    } else {
+        const section = params.category === 'politics' ? 'politics' :
+            params.category === 'business' ? 'business' :
+                params.category === 'sports' ? 'sports' : 'home';
+        url = new URL(`https://api.nytimes.com/svc/topstories/v2/${section}.json`);
+    }
+
+    url.searchParams.append('api-key', NEWS_CONFIG.NYTIMES_KEY);
+
+    console.log(`🌐 Fetching from NYTimes: ${url.toString().replace(NEWS_CONFIG.NYTIMES_KEY, 'API_KEY')}`);
+
+    const response = await fetch(url.toString());
+    const data = await response.json();
+
+    let articles = [];
+    if (data.results) {
+        // Top Stories format
+        articles = data.results;
+    } else if (data.response && data.response.docs) {
+        // Article Search format
+        articles = data.response.docs;
+    }
+
+    if (articles.length > 0) {
+        return articles.map(article => {
+            const multimedia = article.multimedia || article.media;
+            let imageUrl = '/images/World Bank.jpg';
+
+            if (multimedia && multimedia.length > 0) {
+                // NYTimes Search API returns relative paths sometimes, Top Stories returns absolute
+                const firstMedia = multimedia[0];
+                if (firstMedia.url) {
+                    imageUrl = firstMedia.url.startsWith('http') ? firstMedia.url : `https://static01.nyt.com/${firstMedia.url}`;
+                }
+            }
+
+            return {
+                id: article._id || Math.random().toString(36).slice(2, 11),
+                title: article.title || article.headline?.main,
+                description: article.abstract || article.snippet || 'No description available',
+                content: article.lead_paragraph || '',
+                url: article.url || article.web_url,
+                image: imageUrl,
+                publishedAt: article.published_date || article.pub_date || new Date().toISOString(),
+                source: 'New York Times',
+                category: article.section_name || params.category || 'general',
+                author: article.byline?.original || 'NYTimes Staff',
+                country: 'us'
+            };
+        });
+    }
+    throw new Error('Failed to fetch from NYTimes');
+}
+
 async function fetchNews(params) {
     const cacheKey = getCacheKey('news', params);
     const cached = getCachedData(cacheKey);
     if (cached) return cached;
 
-    try {
-        // Try NewsData first
-        const articles = await fetchFromNewsData(params);
-        setCachedData(cacheKey, articles);
-        NEWS_CONFIG.REQUEST_COUNT++;
-        return articles;
-    } catch (error) {
-        console.error('NewsData error:', error.message);
+    console.log('📡 Fetching news from multiple sources...');
 
-        try {
-            // Fallback to TheNewsAPI
-            const articles = await fetchFromTheNewsAPI(params);
-            setCachedData(cacheKey, articles);
-            NEWS_CONFIG.REQUEST_COUNT++;
-            return articles;
-        } catch (error_) {
-            console.error('TheNewsAPI error:', error_.message);
+    // Execute all fetches in parallel
+    const results = await Promise.allSettled([
+        fetchFromNewsData(params),
+        fetchFromTheNewsAPI(params),
+        fetchFromMediastack(params),
+        fetchFromNYTimes(params)
+    ]);
 
-            // Fallback to mock data
-            if (NEWS_CONFIG.USE_MOCK_FALLBACK) {
-                console.log('⚠️ Using mock data fallback');
-                const mockData = getMockNews(params.category, 12);
-                setCachedData(cacheKey, mockData);
-                return mockData;
-            }
+    let aggregatedArticles = [];
 
-            throw new Error('All news sources failed');
+    // Process results
+    results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+            console.log(`✅ Source ${index + 1} success: ${result.value.length} articles`);
+            aggregatedArticles = [...aggregatedArticles, ...result.value];
+        } else {
+            console.error(`❌ Source ${index + 1} failed: ${result.reason.message}`);
         }
+    });
+
+    // Remove duplicates based on title (simple fuzzy match or exact match)
+    const uniqueArticles = Array.from(new Map(aggregatedArticles.map(item => [item.title, item])).values());
+
+    // Shuffle simple to mix sources or sort by date
+    const sortedArticles = uniqueArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+    if (sortedArticles.length > 0) {
+        setCachedData(cacheKey, sortedArticles);
+        NEWS_CONFIG.REQUEST_COUNT++;
+        return sortedArticles;
     }
+
+    // Fallback to mock data if absolutely nothing returned
+    if (NEWS_CONFIG.USE_MOCK_FALLBACK) {
+        console.log('⚠️ All APIs failed or returned no data. Using mock data fallback.');
+        const mockData = getMockNews(params.category, 20);
+        setCachedData(cacheKey, mockData);
+        return mockData;
+    }
+
+    throw new Error('All news sources failed');
 }
 
 // ===========================

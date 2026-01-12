@@ -625,7 +625,7 @@ function renderHeroSection(mainArticle, secondaryArticles = []) {
         <section class="hero-section">
                     <article class="hero-article" data-article-id="${mainArticle.id}" style="cursor: pointer;">
                         <div class="hero-image">
-                            <img src="${mainArticle.image}" alt="${mainArticle.title}" loading="eager" onerror="this.src='images/World Bank.jpg'" style="max-width: 100%; height: auto; object-fit: cover;">
+                            <img src="${mainArticle.image}" alt="${mainArticle.title}" loading="eager" onerror="this.src='images/World Bank.jpg'">
                             <div class="hero-overlay">
                                 <span class="hero-category">${(mainArticle.category || 'GENERAL').toUpperCase()}</span>
                                 <h1 class="hero-title">${mainArticle.title}</h1>
@@ -667,7 +667,7 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
                 ${articles.map(article => `
                     <article class="news-card" data-article-id="${article.id}" style="cursor: pointer;">
                         <div class="news-image">
-                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='images/World Bank.jpg'" style="max-width: 100%; height: auto; object-fit: cover;">
+                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='images/World Bank.jpg'">
                         </div>
                         <div class="news-content">
                             <span class="news-category">${(article.category || 'GENERAL').toUpperCase()}</span>
@@ -684,6 +684,37 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
         </section>
     `;
 }
+
+// Mobile Menu Logic
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileTrigger = document.querySelector('.mobile-menu-trigger');
+    const mainNav = document.querySelector('.main-navigation');
+
+    if (mobileTrigger && mainNav) {
+        mobileTrigger.addEventListener('click', () => {
+            mainNav.classList.toggle('active');
+            mobileTrigger.classList.toggle('active');
+        });
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (mainNav && mainNav.classList.contains('active') &&
+            !mainNav.contains(e.target) &&
+            !mobileTrigger.contains(e.target)) {
+            mainNav.classList.remove('active');
+            mobileTrigger.classList.remove('active');
+        }
+    });
+
+    // Close menu when clicking a link
+    const navLinks = document.querySelectorAll('.nav-item');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (mainNav) mainNav.classList.remove('active');
+        });
+    });
+});
 
 function renderColumnistsSection(articles = []) {
     // Real-life reporters with their images
@@ -740,7 +771,7 @@ function renderSidebar(trendingArticles = []) {
     const now = new Date();
     const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
+
     const filterByDate = (articles, daysAgo) => {
         const cutoff = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
         return articles.filter(article => {
@@ -827,11 +858,11 @@ function updateActiveNav() {
 
     // Get current path
     const currentPath = window.location.pathname;
-    
+
     // Add active class to matching nav item
     navItems.forEach(item => {
         const href = item.getAttribute('href');
-        
+
         // Exact match for home
         if (currentPath === '/' && (href === '/' || href === '')) {
             item.classList.add('active');
@@ -952,10 +983,10 @@ document.addEventListener('submit', (e) => {
 // ===========================
 window.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Daily News App Initialized');
-    
+
     // Make router globally available
     window.router = router;
-    
+
     // Initialize search form
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
@@ -970,7 +1001,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Update active nav whenever route changes
     const originalNavigate = router.navigate.bind(router);
-    router.navigate = function(path) {
+    router.navigate = function (path) {
         originalNavigate(path);
         // Update nav after navigation completes
         setTimeout(() => {
@@ -979,14 +1010,14 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     const originalLoadRoute = router.loadRoute.bind(router);
-    router.loadRoute = async function(path) {
+    router.loadRoute = async function (path) {
         await originalLoadRoute(path);
         // Update nav after route loads
         setTimeout(() => {
             updateActiveNav();
         }, 50);
     };
-    
+
     // Also listen to popstate (browser back/forward)
     window.addEventListener('popstate', () => {
         setTimeout(() => {
@@ -997,7 +1028,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Load initial route
     const path = window.location.pathname + window.location.search;
     router.loadRoute(path === '/' ? '/' : path);
-    
+
     // Initialize enhancements
     initReadingProgress();
 });
@@ -1329,7 +1360,7 @@ function attachArticleClickHandlers() {
 function attachTabHandlers() {
     const tabButtons = document.querySelectorAll('.tab-btn');
     const container = document.getElementById('sidebar-articles-container');
-    
+
     if (!tabButtons.length || !container) return;
 
     tabButtons.forEach(btn => {
@@ -1340,7 +1371,7 @@ function attachTabHandlers() {
 
             // Get articles for this tab
             const articles = JSON.parse(btn.dataset.articles || '[]');
-            
+
             // Render articles
             if (articles.length > 0) {
                 container.innerHTML = articles.map(article => `
@@ -1421,7 +1452,7 @@ function renderWatchPage() {
 async function renderAboutPage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
-    
+
     mainContent.innerHTML = `
         <div class="container">
             <div class="static-page">
@@ -1443,7 +1474,7 @@ async function renderAboutPage() {
 async function renderContactPage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
-    
+
     mainContent.innerHTML = `
         <div class="container">
             <div class="static-page">
@@ -1481,7 +1512,7 @@ async function renderContactPage() {
             </div>
         </div>
     `;
-    
+
     // Handle form submission
     const form = document.getElementById('contact-form');
     if (form) {
@@ -1492,20 +1523,20 @@ async function renderContactPage() {
             const subject = formData.get('subject');
             const message = formData.get('message');
             const name = formData.get('name');
-            
+
             // Open email client
             const mailtoLink = `mailto:gideongeng@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
             window.location.href = mailtoLink;
         });
     }
-    
+
     updateActiveNav();
 }
 
 async function renderAdvertisePage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
-    
+
     mainContent.innerHTML = `
         <div class="container">
             <div class="static-page">
@@ -1533,7 +1564,7 @@ async function renderAdvertisePage() {
 async function renderPrivacyPage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
-    
+
     mainContent.innerHTML = `
         <div class="container">
             <div class="static-page">
@@ -1613,13 +1644,13 @@ async function renderPrivacyPage() {
 
 async function renderBookmarksPage() {
     const bookmarks = getBookmarks();
-    
+
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
     try {
         const trending = await fetchAPI('/api/trending');
-        
+
         mainContent.innerHTML = `
             <div class="container">
                 <div class="content-wrapper">

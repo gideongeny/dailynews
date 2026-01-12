@@ -5,15 +5,22 @@ export const NEWS_CONFIG = {
     // NewsData.io API keys (primary)
     NEWSDATA_API_KEYS: [
         'pub_1d543e32d71f4487ba93652287a90acc',
-        'pub_1d543e32d71f4487ba93652287a90acc' // Duplicate, will use as backup
+        'pub_3646603378396593582030058e57976691461' // Backup key
     ],
 
     // The News API key
     THENEWSAPI_KEY: '2-Q_c0ydZgil3Ti859SjE1HiJxBJ6V4lQCNEUCJLJ0S65bfV',
 
+    // New APIs
+    MEDIASTACK_KEY: '0a9d0ac3bda30fdcd2bdc447e365320d',
+    NYTIMES_KEY: 'HRdesBbmlbUI9b8laRNMAaGSvFEIa6dLhv4rWOP35WywiJGHqRmc2Pmb6QBARWxR',
+    INFLIGHT_KEY: 'sk_03278df14e1dc82e69d9733cdca8032a674a9e4247ed230bd334a86a7ed8f8bb',
+
     // API Endpoints
     NEWSDATA_BASE_URL: 'https://newsdata.io/api/1/news',
     THENEWSAPI_BASE_URL: 'https://api.thenewsapi.com/v1/news',
+    MEDIASTACK_BASE_URL: 'http://api.mediastack.com/v1/news',
+    NYTIMES_BASE_URL: 'https://api.nytimes.com/svc/topstories/v2',
 
     // Cache settings
     CACHE_DURATION: 15 * 60 * 1000, // 15 minutes in milliseconds
