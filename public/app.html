@@ -21,7 +21,7 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style.css?v=1.1.2">
     <script defer src="https://vercel.live/api/script.js"></script>
     <script type="application/ld+json">
         {
@@ -141,6 +141,16 @@
         </nav>
     </header>
 
+    <!-- 4. Trending Bar (Now at the top) -->
+    <div class="trending-bar-top" id="trending-bar">
+        <div class="container trending-inner">
+            <span class="trending-label">TRENDING</span>
+            <div class="trending-ticker" id="trending-ticker">
+                <!-- Dynamic trending items -->
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content Area -->
     <main class="main-content-area" id="main-content">
         <!-- Content will be dynamically loaded here -->
@@ -160,92 +170,65 @@
         </div>
     </div>
 
-    <!-- 4. Trending Bar (Now at the bottom) -->
-    <div class="trending-bar-bottom" id="trending-bar">
-        <div class="container trending-inner">
-            <span class="trending-label">TRENDING</span>
-            <div class="trending-ticker" id="trending-ticker">
-                <!-- Dynamic trending items -->
-            </div>
-        </div>
-    </div>
 
     <!-- Footer -->
-    <footer class="site-footer-pro">
-        <div class="footer-grid-container px-4 py-16 mx-auto sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                <div>
-                    <div class="footer-brand h-8 w-auto">
-                        <span class="text-2xl font-bold">DAILY<span class="text-red-600">NEWS</span></span>
+    <footer class="site-footer-v2">
+        <div class="container">
+            <div class="footer-top-grid">
+                <div class="footer-brand-col">
+                    <div class="footer-logo">DAILY<span>NEWS</span></div>
+                    <p class="brand-tagline">The heartbeat of the world. World-class journalism delivered across all
+                        platforms.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
                     </div>
+                </div>
 
-                    <p class="mt-6 max-w-xs text-foreground/70 leading-relaxed">
-                        Empowering the world with reliable, scalable, and innovative journalism. We give a voice to the
-                        voiceless and keep you connected to the heartbeat of the world.
-                    </p>
-
-                    <ul class="mt-8 flex gap-6">
-                        <li><a href="#" class="footer-social-link" aria-label="Facebook">F</a></li>
-                        <li><a href="#" class="footer-social-link" aria-label="Twitter">X</a></li>
-                        <li><a href="#" class="footer-social-link" aria-label="Instagram">I</a></li>
-                        <li><a href="#" class="footer-social-link" aria-label="LinkedIn">L</a></li>
+                <div class="footer-nav-col">
+                    <h4>World</h4>
+                    <ul>
+                        <li><a href="/region/africa">Africa</a></li>
+                        <li><a href="/region/asia">Asia</a></li>
+                        <li><a href="/region/europe">Europe</a></li>
+                        <li><a href="/region/north-america">North America</a></li>
+                        <li><a href="/region/middle-east">Middle East</a></li>
                     </ul>
                 </div>
 
-                <div class="grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-4 lg:col-span-2">
-                    <div class="footer-column">
-                        <p class="font-bold text-lg">Categories</p>
-                        <ul class="mt-8 space-y-4 text-sm">
-                            <li><a href="/category/kenya" class="footer-link">Kenya</a></li>
-                            <li><a href="/category/politics" class="footer-link">Politics</a></li>
-                            <li><a href="/category/business" class="footer-link">Business</a></li>
-                            <li><a href="/category/sports" class="footer-link">Sports</a></li>
-                        </ul>
-                    </div>
+                <div class="footer-nav-col">
+                    <h4>Sections</h4>
+                    <ul>
+                        <li><a href="/category/politics">Politics</a></li>
+                        <li><a href="/category/business">Business</a></li>
+                        <li><a href="/category/technology">Tech</a></li>
+                        <li><a href="/category/sports">Sports</a></li>
+                        <li><a href="/category/health">Health</a></li>
+                        <li><a href="/video">Video</a></li>
+                    </ul>
+                </div>
 
-                    <div class="footer-column">
-                        <p class="font-bold text-lg">Regions</p>
-                        <ul class="mt-8 space-y-4 text-sm">
-                            <li><a href="/regions/africa" class="footer-link">Africa</a></li>
-                            <li><a href="/regions/asia" class="footer-link">Asia</a></li>
-                            <li><a href="/regions/south-america" class="footer-link">South America</a></li>
-                            <li><a href="/regions/middle-east" class="footer-link">Middle East</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-column">
-                        <p class="font-bold text-lg">Helpful Links</p>
-                        <ul class="mt-8 space-y-4 text-sm">
-                            <li><a href="/about" class="footer-link">About Us</a></li>
-                            <li><a href="/contact" class="footer-link">Support</a></li>
-                            <li><a href="/privacy" class="footer-link">Privacy Policy</a></li>
-                            <li><a href="/subscribe" class="footer-link">Subscribe</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="footer-column">
-                        <p class="font-bold text-lg">Contact Us</p>
-                        <ul class="mt-8 space-y-4 text-sm">
-                            <li><a href="mailto:hello@dailynews.africa" class="footer-link">hello@dailynews.africa</a>
-                            </li>
-                            <li><a href="tel:+254700000000" class="footer-link">+254 700 000 000</a></li>
-                            <li>
-                                <p class="text-foreground/60">Nairobi, Kenya</p>
-                            </li>
-                        </ul>
-                    </div>
+                <div class="footer-nav-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="/advertise">Advertise</a></li>
+                        <li><a href="/privacy">Privacy</a></li>
+                        <li><a href="/terms">Terms</a></li>
+                    </ul>
                 </div>
             </div>
 
-            <div class="mt-12 border-t border-foreground/10 pt-6">
-                <div class="text-center sm:flex sm:justify-between sm:text-left">
-                    <p class="text-sm text-foreground/60">
-                        &copy; <span id="copyright-year"></span> DAILYNEWS. v1.1.2. All rights reserved.
-                    </p>
-                    <div class="mt-4 sm:mt-0 space-x-4">
-                        <a href="/terms" class="text-xs text-foreground/50 hover:text-foreground">Terms of Service</a>
-                        <a href="/privacy" class="text-xs text-foreground/50 hover:text-foreground">Privacy Policy</a>
-                    </div>
+            <div class="footer-bottom">
+                <div class="footer-legal">
+                    <p>&copy; <span id="copyright-year"></span> DAILYNEWS. v1.2.0. All rights reserved. Precise
+                        reporting, globally recognized.</p>
+                </div>
+                <div class="footer-status">
+                    <span class="status-indicator"></span> System Online
                 </div>
             </div>
         </div>

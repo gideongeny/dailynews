@@ -523,8 +523,10 @@ async function fetchAPI(endpoint) {
             ];
 
             // Category-specific RSS feeds
-            if (endpoint.includes('category/')) {
-                const category = endpoint.split('category/')[1].split('?')[0];
+            if (endpoint.includes('category/') || endpoint.includes('region/')) {
+                const parts = endpoint.split('/');
+                const category = parts[parts.length - 1].split('?')[0];
+
                 if (category === 'sports') {
                     rssFeedsToFetch = [
                         'http://feeds.bbci.co.uk/sport/rss.xml',
@@ -581,6 +583,41 @@ async function fetchAPI(endpoint) {
                         'https://www.theguardian.com/uk/politics/rss',
                         'https://www.aljazeera.com/xml/rss/all.xml',
                         'http://rss.cnn.com/rss/cnn_allpolitics.rss'
+                    ];
+                } else if (category === 'north-america') {
+                    rssFeedsToFetch = [
+                        'http://rss.cnn.com/rss/edition_us.rss',
+                        'http://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml',
+                        'https://www.nytimes.com/svc/collections/v1/publish/https://www.nytimes.com/section/world/americas/rss.xml',
+                        'https://www.wsj.com/xml/rss/3_7085.xml'
+                    ];
+                } else if (category === 'europe') {
+                    rssFeedsToFetch = [
+                        'http://feeds.bbci.co.uk/news/world/europe/rss.xml',
+                        'https://www.theguardian.com/world/europe/rss',
+                        'https://www.euronews.com/rss?level=vertical&name=news',
+                        'https://www.dw.com/xml/rss-en-all'
+                    ];
+                } else if (category === 'oceania' || category === 'australia') {
+                    rssFeedsToFetch = [
+                        'https://www.abc.net.au/news/feed/51120/rss.xml',
+                        'https://www.theguardian.com/australia-news/rss',
+                        'https://www.smh.com.au/rss/feed.xml',
+                        'http://feeds.bbci.co.uk/news/world/australia/rss.xml'
+                    ];
+                } else if (category === 'middle-east') {
+                    rssFeedsToFetch = [
+                        'https://www.aljazeera.com/xml/rss/all.xml',
+                        'http://feeds.bbci.co.uk/news/world/middle_east/rss.xml',
+                        'https://www.theguardian.com/world/middleeast/rss',
+                        'https://www.reuters.com/arc/outboundfeeds/reuters/world/middle-east/?outputType=xml'
+                    ];
+                } else if (category === 'asean' || category === 'southeast-asia') {
+                    rssFeedsToFetch = [
+                        'https://www.channelnewsasia.com/rssfeeds/8395986',
+                        'https://www.scmp.com/rss/2/feed.xml',
+                        'https://www.thestar.com.my/rss/news/nation',
+                        'https://www.bangkokpost.com/rss/data/topstories.xml'
                     ];
                 }
             }
@@ -1459,7 +1496,7 @@ function renderColumnistsSection(articles = []) {
             name: 'Jeff Koinange',
             source: 'Citizen TV',
             category: 'Politics & Society',
-            image: 'https://pbs.twimg.com/profile_images/1643194038165749760/9nKz7c6A_400x400.jpg',
+            image: '/images/jeff.jpg',
             bio: 'Award-winning Kenyan journalist, host of JKL and former CNN correspondent with over 30 years of experience.',
             recentArticles: [
                 { title: 'The Future of Kenyan Democracy', url: '/search?q=Jeff+Koinange' },
@@ -1470,7 +1507,7 @@ function renderColumnistsSection(articles = []) {
             name: 'Larry Madowo',
             source: 'CNN International',
             category: 'Business & Tech',
-            image: 'https://pbs.twimg.com/profile_images/1792138927959244800/8d8A0V5m_400x400.jpg',
+            image: '/images/larry.png',
             bio: 'CNN International Correspondent based in Nairobi. Former BBC Africa Business Editor and tech enthusiast.',
             recentArticles: [
                 { title: 'Africa\'s Silicon Savannah Tech Boom', url: '/search?q=Larry+Madowo' },
@@ -1478,14 +1515,14 @@ function renderColumnistsSection(articles = []) {
             ]
         },
         {
-            name: 'Christiane Amanpour',
-            source: 'CNN',
-            category: 'Global Affairs',
-            image: 'https://pbs.twimg.com/profile_images/1381987515152060421/yR15mI2f_400x400.jpg',
-            bio: 'CNN Chief International Anchor and one of the most respected journalists in the world covering conflict and diplomacy.',
+            name: 'Yvonne Okwara',
+            source: 'Citizen TV',
+            category: 'Politics & Economy',
+            image: 'https://pbs.twimg.com/profile_images/1643194038165749760/9nKz7c6A_400x400.jpg',
+            bio: 'Senior journalist and news anchor specializing in political analysis and economic reporting.',
             recentArticles: [
-                { title: 'Global Diplomacy in a Fragmented World', url: '/search?q=Christiane+Amanpour' },
-                { title: 'Voices from the Frontlines', url: '/search?q=Christiane+Amanpour' }
+                { title: 'Economic Resilience in East Africa', url: '/search?q=Yvonne+Okwara' },
+                { title: 'Political Landscape Shift', url: '/search?q=Yvonne+Okwara' }
             ]
         }
     ];
@@ -2329,25 +2366,28 @@ function renderSignInPage() {
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-        <div class="container py-20">
-            <div class="auth-card max-w-md mx-auto bg-white p-10 rounded-2xl shadow-2xl">
-                <div class="text-center mb-10">
-                    <h1 class="text-3xl font-black text-slate-900">Welcome Back</h1>
-                    <p class="text-slate-500 mt-2">Sign in to sync your bookmarks and subscription</p>
+        <div class="auth-page-wrapper">
+            <div class="premium-auth-card">
+                <div class="auth-header-premium">
+                    <div class="auth-logo">DAILY<span>NEWS</span></div>
+                    <h2 class="text-2xl font-bold text-slate-900">Welcome Back</h2>
+                    <p class="text-slate-500 mt-2">Sign in to access your premium news</p>
                 </div>
-                <form id="signin-form" class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
-                        <input type="email" id="signin-email" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
+                <div class="auth-body-premium">
+                    <form id="signin-form">
+                        <div class="auth-input-group">
+                            <label>Email Address</label>
+                            <input type="email" id="signin-email" placeholder="name@example.com" required>
+                        </div>
+                        <div class="auth-input-group">
+                            <label>Password</label>
+                            <input type="password" id="signin-password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="premium-auth-btn">Sign In to DailyNews</button>
+                    </form>
+                    <div class="auth-links-premium">
+                        Don't have an account? <a href="/signup">Sign Up</a>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Password</label>
-                        <input type="password" id="signin-password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
-                    </div>
-                    <button type="submit" class="w-full py-4 bg-slate-900 text-white font-bold rounded-lg hover:bg-black transition-all">Sign In</button>
-                </form>
-                <div class="text-center mt-8 pt-8 border-t border-slate-100">
-                    <p class="text-slate-500">Don't have an account? <a href="/signup" class="text-red-600 font-bold">Sign Up</a></p>
                 </div>
             </div>
         </div>
@@ -2369,29 +2409,32 @@ function renderSignUpPage() {
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-        <div class="container py-20">
-            <div class="auth-card max-w-md mx-auto bg-white p-10 rounded-2xl shadow-2xl">
-                <div class="text-center mb-10">
-                    <h1 class="text-3xl font-black text-slate-900">Join DailyNews</h1>
-                    <p class="text-slate-500 mt-2">Get personalized updates and premium features</p>
+        <div class="auth-page-wrapper">
+            <div class="premium-auth-card">
+                <div class="auth-header-premium">
+                    <div class="auth-logo">DAILY<span>NEWS</span></div>
+                    <h2 class="text-2xl font-bold text-slate-900">Create Account</h2>
+                    <p class="text-slate-500 mt-2">Join our global community of readers</p>
                 </div>
-                <form id="signup-form" class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
-                        <input type="text" id="signup-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
+                <div class="auth-body-premium">
+                    <form id="signup-form">
+                        <div class="auth-input-group">
+                            <label>Full Name</label>
+                            <input type="text" id="signup-name" placeholder="John Doe" required>
+                        </div>
+                        <div class="auth-input-group">
+                            <label>Email Address</label>
+                            <input type="email" id="signup-email" placeholder="name@example.com" required>
+                        </div>
+                        <div class="auth-input-group">
+                            <label>Create Password</label>
+                            <input type="password" id="signup-password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="premium-auth-btn">Join DailyNews</button>
+                    </form>
+                    <div class="auth-links-premium">
+                        Already have an account? <a href="/signin">Sign In</a>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
-                        <input type="email" id="signup-email" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Create Password</label>
-                        <input type="password" id="signup-password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
-                    </div>
-                    <button type="submit" class="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all">Create Account</button>
-                </form>
-                <div class="text-center mt-8 pt-8 border-t border-slate-100">
-                    <p class="text-slate-500">Already have an account? <a href="/signin" class="text-slate-900 font-bold">Sign In</a></p>
                 </div>
             </div>
         </div>
@@ -2413,80 +2456,139 @@ function renderSubscribePage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
-    mainContent.innerHTML = `
-        <div class="container py-20 text-center">
-            <div class="max-w-4xl mx-auto">
-                <h1 class="text-4xl font-black text-slate-900 mb-4">Elevate Your Experience</h1>
-                <p class="text-xl text-slate-600 mb-12">Choose the plan that's right for you. Secure payments via PayPal.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                    <!-- Standard Plan -->
-                    <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
-                        <h3 class="text-xl font-bold mb-2">Standard</h3>
-                        <div class="text-3xl font-black mb-6">$0 <span class="text-sm font-normal text-slate-500">/month</span></div>
-                        <ul class="space-y-4 mb-10 flex-grow">
-                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Basic news access</li>
-                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Standard newsletters</li>
-                            <li class="flex items-center text-slate-400"><span class="mr-2">✗</span> Ad-Free experience</li>
-                        </ul>
-                        <button class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-lg cursor-not-allowed">Current Plan</button>
-                    </div>
+    renderPricingGrid();
 
-                    <!-- Premium Plan -->
-                    <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border-4 border-red-600 transform scale-105 flex flex-col relative">
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-1 rounded-full text-xs font-bold">MOST POPULAR</div>
-                        <h3 class="text-xl font-bold text-white mb-2">Premium</h3>
-                        <div class="text-3xl font-black text-white mb-6">$9.99 <span class="text-sm font-normal text-slate-400">/month</span></div>
-                        <ul class="space-y-4 mb-10 flex-grow">
-                            <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Ad-Free Journalism</li>
-                            <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Exclusive Expert Analysis</li>
-                            <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Breaking News SMS Alerts</li>
-                        </ul>
-                        <div id="paypal-button-container-premium"></div>
-                    </div>
+    function renderPricingGrid() {
+        mainContent.innerHTML = `
+            <div class="container py-20 text-center">
+                <div class="max-w-4xl mx-auto">
+                    <h1 class="text-4xl font-black text-slate-900 mb-4">Elevate Your Experience</h1>
+                    <p class="text-xl text-slate-600 mb-12">Choose the plan that's right for you. Secure payments via PayPal.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                        <!-- Standard Plan -->
+                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
+                            <h3 class="text-xl font-bold mb-2">Standard</h3>
+                            <div class="text-3xl font-black mb-6">$0 <span class="text-sm font-normal text-slate-500">/month</span></div>
+                            <ul class="space-y-4 mb-10 flex-grow">
+                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Basic news access</li>
+                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Standard newsletters</li>
+                                <li class="flex items-center text-slate-400"><span class="mr-2">✗</span> Ad-Free experience</li>
+                            </ul>
+                            <button class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-lg cursor-not-allowed">Current Plan</button>
+                        </div>
 
-                    <!-- Annual Plan -->
-                    <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
-                        <h3 class="text-xl font-bold mb-2">Annual</h3>
-                        <div class="text-3xl font-black mb-6">$89.99 <span class="text-sm font-normal text-slate-500">/year</span></div>
-                        <ul class="space-y-4 mb-10 flex-grow text-sm">
-                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> All Premium level features</li>
-                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Save 25% vs monthly</li>
-                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> VIP Event invites</li>
-                        </ul>
-                        <div id="paypal-button-container-annual"></div>
+                        <!-- Premium Plan -->
+                        <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border-4 border-red-600 transform scale-105 flex flex-col relative">
+                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-1 rounded-full text-xs font-bold">MOST POPULAR</div>
+                            <h3 class="text-xl font-bold text-white mb-2">Premium</h3>
+                            <div class="text-3xl font-black text-white mb-6">$9.99 <span class="text-sm font-normal text-slate-400">/month</span></div>
+                            <ul class="space-y-4 mb-10 flex-grow">
+                                <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Ad-Free Journalism</li>
+                                <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Exclusive Expert Analysis</li>
+                                <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Breaking News SMS Alerts</li>
+                            </ul>
+                            <button onclick="window.renderBillingStep('Premium', 9.99)" class="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all">Select Premium</button>
+                        </div>
+
+                        <!-- Annual Plan -->
+                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
+                            <h3 class="text-xl font-bold mb-2">Annual</h3>
+                            <div class="text-3xl font-black mb-6">$89.99 <span class="text-sm font-normal text-slate-500">/year</span></div>
+                            <ul class="space-y-4 mb-10 flex-grow">
+                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> All Premium Features</li>
+                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> 25% Savings vs Monthly</li>
+                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> VIP Event Invites</li>
+                            </ul>
+                            <button onclick="window.renderBillingStep('Annual', 89.99)" class="w-full py-4 bg-slate-900 text-white font-bold rounded-lg hover:bg-black transition-all">Select Annual</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
-
-    if (typeof paypal !== 'undefined') {
-        const initButtons = (id, amount, desc) => {
-            paypal.Buttons({
-                createOrder: (data, actions) => {
-                    return actions.order.create({
-                        purchase_units: [{
-                            description: desc,
-                            amount: { currency_code: 'USD', value: amount },
-                            payee: { email_address: 'ngideon302@gmail.com' }
-                        }]
-                    });
-                },
-                onApprove: async (data, actions) => {
-                    const order = await actions.order.capture();
-                    handleSubscriptionSuccess(order, desc);
-                },
-                onError: (err) => {
-                    console.error('PayPal Error:', err);
-                    showError('Payment failed to initialize.');
-                }
-            }).render(`#${id}`);
-        };
-
-        initButtons('paypal-button-container-premium', '9.99', 'DailyNews Premium Monthly');
-        initButtons('paypal-button-container-annual', '89.99', 'DailyNews Premium Annual');
+        `;
     }
+
+    window.renderBillingStep = function (planName, amount) {
+        mainContent.innerHTML = `
+            <div class="container py-20">
+                <div class="max-w-2xl mx-auto bg-white p-10 rounded-2xl shadow-2xl">
+                    <div class="flex items-center mb-8">
+                        <button onclick="window.renderSubscribePage()" class="text-slate-500 hover:text-slate-900 mr-4">← Back to plans</button>
+                        <h2 class="text-3xl font-black text-slate-900">Billing Information</h2>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-6 rounded-xl mb-8 border border-slate-100 flex justify-between items-center">
+                        <div>
+                            <span class="text-sm text-slate-500 uppercase font-bold">Selected Plan</span>
+                            <div class="text-xl font-black text-slate-900">${planName}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm text-slate-500 uppercase font-bold">Amount Due</span>
+                            <div class="text-2xl font-black text-red-600">$${amount}</div>
+                        </div>
+                    </div>
+
+                    <form id="billing-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">First Name</label>
+                                <input type="text" id="billing-first-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
+                                <input type="text" id="billing-last-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Billing Address</label>
+                            <input type="text" id="billing-address" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            <div class="col-span-1">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">City</label>
+                                <input type="text" id="billing-city" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                            </div>
+                            <div class="col-span-1">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Country</label>
+                                <input type="text" id="billing-country" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" value="Kenya" required>
+                            </div>
+                        </div>
+
+                        <div id="payment-section" class="pt-8 border-t border-slate-100">
+                            <p class="text-sm text-slate-500 mb-6 text-center">Complete your purchase securely via PayPal</p>
+                            <div id="paypal-button-container-${planName.toLowerCase()}"></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+
+        // Initialize PayPal
+        if (typeof paypal !== 'undefined') {
+            const initButtons = (id, amount, desc) => {
+                paypal.Buttons({
+                    createOrder: (data, actions) => {
+                        return actions.order.create({
+                            purchase_units: [{
+                                description: desc,
+                                amount: { currency_code: 'USD', value: amount },
+                                payee: { email_address: 'ngideon302@gmail.com' }
+                            }]
+                        });
+                    },
+                    onApprove: async (data, actions) => {
+                        const order = await actions.order.capture();
+                        handleSubscriptionSuccess(order, desc);
+                    },
+                    onError: (err) => {
+                        console.error('PayPal Error:', err);
+                    }
+                }).render(`#${id}`);
+            };
+
+            initButtons(`paypal-button-container-${planName.toLowerCase()}`, amount.toString(), `DailyNews ${planName} Subscription`);
+        }
+    };
 
     updateActiveNav();
 }
