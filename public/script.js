@@ -172,6 +172,48 @@ function deduplicateArticles(articles) {
     return unique;
 }
 
+// Category Filtering by Keywords
+const CATEGORY_KEYWORDS = {
+    politics: ['trump', 'biden', 'election', 'government', 'president', 'congress', 'senate', 'parliament', 'minister', 'political', 'vote', 'campaign', 'policy', 'law', 'legislation'],
+    sports: ['football', 'basketball', 'soccer', 'tennis', 'cricket', 'rugby', 'olympics', 'game', 'match', 'player', 'team', 'championship', 'league', 'tournament', 'score', 'win', 'defeat'],
+    technology: ['tech', 'ai', 'software', 'apple', 'google', 'microsoft', 'facebook', 'amazon', 'startup', 'app', 'digital', 'cyber', 'data', 'algorithm', 'innovation'],
+    business: ['stock', 'market', 'economy', 'company', 'trade', 'finance', 'investment', 'bank', 'revenue', 'profit', 'ceo', 'business', 'corporate', 'industry', 'economic'],
+    health: ['health', 'medical', 'hospital', 'doctor', 'patient', 'disease', 'vaccine', 'medicine', 'treatment', 'covid', 'pandemic', 'virus', 'healthcare'],
+    culture: ['art', 'music', 'film', 'movie', 'book', 'artist', 'culture', 'festival', 'museum', 'theater', 'entertainment', 'celebrity', 'fashion'],
+    world: ['international', 'global', 'country', 'nation', 'foreign', 'diplomatic', 'war', 'conflict', 'peace', 'treaty'],
+    kenya: ['kenya', 'nairobi', 'mombasa', 'ruto', 'odinga', 'east africa', 'ksm', 'kenyan', 'gachagua', 'kanu', 'jubilee', 'azimio', 'udm'],
+    africa: ['africa', 'nigeria', 'south africa', 'ethiopia', 'egypt', 'ghana', 'senegal', 'african', 'african union', 'maghreb', 'sahel'],
+    asia: ['asia', 'china', 'india', 'japan', 'south korea', 'vietnam', 'thailand', 'asian', 'asean', 'beijing', 'tokyo', 'delhi'],
+    'south-america': ['brazil', 'argentina', 'colombia', 'chile', 'peru', 'venezuela', 'latin america', 'amazon', 'andes']
+};
+
+function filterByCategory(articles, targetCategory) {
+    if (!targetCategory || targetCategory === 'general') {
+        return articles; // No filtering for general/home page
+    }
+
+    const keywords = CATEGORY_KEYWORDS[targetCategory.toLowerCase()];
+    if (!keywords) {
+        console.warn(`⚠️ [FILTER] No keywords defined for category: ${targetCategory}`);
+        return articles;
+    }
+
+    const filtered = articles.filter(article => {
+        const text = `${article.title} ${article.description}`.toLowerCase();
+        const matchCount = keywords.filter(kw => text.includes(kw)).length;
+
+        // Article must match at least 1 keyword
+        if (matchCount > 0) {
+            console.log(`✅ [FILTER] "${article.title.substring(0, 50)}..." matches ${targetCategory} (${matchCount} keywords)`);
+            return true;
+        }
+        return false;
+    });
+
+    console.log(`📊 [FILTER] Category "${targetCategory}": ${filtered.length}/${articles.length} articles matched`);
+    return filtered;
+}
+
 class Router {
     constructor() {
         this.routes = {};
@@ -339,14 +381,62 @@ async function fetchAPI(endpoint) {
                     theNewsUrl += `&search=${query}`;
                 }
 
-                // RSS Feeds via rss2json proxy (No API keys needed!)
-                const rssFeedsToFetch = [
-                    'http://feeds.bbci.co.uk/news/world/rss.xml',           // BBC World News
-                    'http://rss.cnn.com/rss/edition_world.rss',             // CNN World
-                    'https://www.theguardian.com/world/rss',                // Guardian World
-                    'https://www.aljazeera.com/xml/rss/all.xml',            // Al Jazeera
-                    'https://feeds.reuters.com/reuters/topNews'             // Reuters Top News
+                // RSS Feeds via rss2json proxy
+                let rssFeedsToFetch = [
+                    'http://feeds.bbci.co.uk/news/world/rss.xml',
+                    'http://rss.cnn.com/rss/edition_world.rss',
+                    'https://www.theguardian.com/world/rss',
+                    'https://www.aljazeera.com/xml/rss/all.xml',
+                    'https://feeds.reuters.com/reuters/topNews'
                 ];
+
+                // Category-specific RSS feeds
+                if (endpoint.includes('category/')) {
+                    const category = endpoint.split('category/')[1].split('?')[0];
+                    if (category === 'sports') {
+                        rssFeedsToFetch = [
+                            'http://feeds.bbci.co.uk/sport/rss.xml',
+                            'http://rss.cnn.com/rss/edition_sport.rss',
+                            'https://www.theguardian.com/uk/sport/rss'
+                        ];
+                    } else if (category === 'kenya') {
+                        rssFeedsToFetch = [
+                            'https://www.standardmedia.co.ke/rss/headlines.php',
+                            'https://nation.africa/service/rss/620/view/default/rss.xml',
+                            'https://www.the-star.co.ke/rss'
+                        ];
+                    } else if (category === 'africa' || category === 'regions') {
+                        rssFeedsToFetch = [
+                            'https://www.aljazeera.com/xml/rss/all.xml',
+                            'http://feeds.bbci.co.uk/news/world/africa/rss.xml',
+                            'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf'
+                        ];
+                    } else if (category === 'asia') {
+                        rssFeedsToFetch = [
+                            'http://feeds.bbci.co.uk/news/world/asia/rss.xml',
+                            'https://www.aljazeera.com/xml/rss/all.xml',
+                            'http://feeds.reuters.com/reuters/worldNews'
+                        ];
+                    } else if (category === 'technology') {
+                        rssFeedsToFetch = [
+                            'http://feeds.bbci.co.uk/news/technology/rss.xml',
+                            'https://www.theguardian.com/uk/technology/rss',
+                            'http://rss.cnn.com/rss/edition_technology.rss'
+                        ];
+                    } else if (category === 'business') {
+                        rssFeedsToFetch = [
+                            'http://feeds.bbci.co.uk/news/business/rss.xml',
+                            'https://www.theguardian.com/uk/business/rss',
+                            'http://rss.cnn.com/rss/edition_business.rss'
+                        ];
+                    } else if (category === 'politics') {
+                        rssFeedsToFetch = [
+                            'http://feeds.bbci.co.uk/news/politics/rss.xml',
+                            'https://www.theguardian.com/uk/politics/rss',
+                            'https://www.aljazeera.com/xml/rss/all.xml'
+                        ];
+                    }
+                }
 
                 const rssProxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
@@ -361,11 +451,7 @@ async function fetchAPI(endpoint) {
                     safeFetchJson(newsDataUrl),
                     safeFetchJson(nyTimesUrl),
                     safeFetchJson(theNewsUrl),
-                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[0])), // BBC
-                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[1])), // CNN
-                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[2])), // Guardian
-                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[3])), // Al Jazeera
-                    safeFetchJson(rssProxyUrl + encodeURIComponent(rssFeedsToFetch[4]))  // Reuters
+                    ...rssFeedsToFetch.map(url => safeFetchJson(rssProxyUrl + encodeURIComponent(url)))
                 ]);
 
                 console.log('📊 [TRACE] API Results Summary:', results.map(r => r ? 'SUCCESS' : 'FAIL'));
@@ -522,6 +608,13 @@ async function fetchAPI(endpoint) {
                 // Deduplicate articles
                 aggregatedArticles = deduplicateArticles(aggregatedArticles);
 
+                // Apply Category Filtering if relevant
+                if (endpoint.includes('category/')) {
+                    const category = endpoint.split('category/')[1].split('?')[0];
+                    console.log(`🎯 [TRACE] Applying category filtering for: ${category}`);
+                    aggregatedArticles = filterByCategory(aggregatedArticles, category);
+                }
+
                 hideLoading();
 
                 if (aggregatedArticles.length > 0) {
@@ -536,6 +629,18 @@ async function fetchAPI(endpoint) {
                         seenTitles.add(item.title);
                         return true;
                     });
+
+                    // PERSISTENCE FIX: Save articles to local storage to prevent 404 on refresh
+                    const storedArticles = JSON.parse(localStorage.getItem('news_cache') || '{}');
+                    aggregatedArticles.forEach(a => {
+                        storedArticles[a.id] = a;
+                    });
+                    // Keep only last 400 articles to save space
+                    const keys = Object.keys(storedArticles);
+                    if (keys.length > 400) {
+                        keys.slice(0, keys.length - 400).forEach(k => delete storedArticles[k]);
+                    }
+                    localStorage.setItem('news_cache', JSON.stringify(storedArticles));
 
                     return {
                         status: 'success',
@@ -895,11 +1000,20 @@ async function renderRegionPage(params) {
 
 async function renderArticlePage(params) {
     const articleId = params.id;
+    showLoading();
 
     try {
-        // Get article from cache or fetch
-        const cachedArticle = getArticleFromCache(articleId);
+        // Try to find article in persistent cache first (fixes 404 on refresh)
+        const storedArticles = JSON.parse(localStorage.getItem('news_cache') || '{}');
+        let cachedArticle = storedArticles[articleId] || getArticleFromCache(articleId);
+
         const trending = await fetchAPI('/api/trending');
+
+        if (!cachedArticle) {
+            // Last ditch effort: refresh data and check
+            const data = await fetchAPI('/api/news');
+            cachedArticle = data.articles.find(a => a.id === articleId);
+        }
 
         if (!cachedArticle) {
             throw new Error('Article not found');
@@ -907,16 +1021,19 @@ async function renderArticlePage(params) {
 
         const mainContent = document.getElementById('main-content');
         if (!mainContent) return;
+
+        window.scrollTo(0, 0);
+
         mainContent.innerHTML = `
             <div class="container">
                 <div class="article-page">
                     <div class="article-main">
                         <article class="article-full">
                             <div class="article-header">
-                                <span class="article-category">${cachedArticle.category.toUpperCase()}</span>
+                                <span class="article-category">${(cachedArticle.category || 'GENERAL').toUpperCase()}</span>
                                 <h1 class="article-title">${cachedArticle.title}</h1>
                                 <div class="article-meta">
-                                    <span class="article-author">By ${cachedArticle.author}</span>
+                                    <span class="article-author">By ${cachedArticle.author || 'Staff Writer'}</span>
                                     <span class="article-date">${formatDate(cachedArticle.publishedAt)}</span>
                                     <span class="article-source">Source: ${cachedArticle.source}</span>
                                 </div>
@@ -927,9 +1044,9 @@ async function renderArticlePage(params) {
                             </div>
                             
                             <div class="article-content">
-                                <p class="article-lead">${cachedArticle.description}</p>
+                                <p class="article-lead">${cachedArticle.description || ''}</p>
                                 <div class="article-body">
-                                    ${cachedArticle.content || cachedArticle.description}
+                                    ${cachedArticle.content || cachedArticle.description || 'Full coverage is available at the source.'}
                                 </div>
                                 ${cachedArticle.url && cachedArticle.url !== '#' ? `
                                     <div class="article-source-link">
@@ -979,14 +1096,16 @@ async function renderArticlePage(params) {
                     </div>
                     
                     <aside class="article-sidebar">
-                        ${renderSidebar(trending.articles)}
+                        ${renderSidebar(trending.articles || [])}
                     </aside>
                 </div>
             </div>
         `;
 
         updateBookmarkButton(articleId);
+        hideLoading();
     } catch (error) {
+        hideLoading();
         console.error('Error rendering article page:', error);
         const mainContent = document.getElementById('main-content');
         if (!mainContent) return;
@@ -994,7 +1113,7 @@ async function renderArticlePage(params) {
             <div class="container">
                 <div class="article-error">
                     <h1>Article Not Found</h1>
-                    <p>The article you're looking for could not be found.</p>
+                    <p>The article you're looking for could not be found or is no longer available in our temporary cache.</p>
                     <a href="/" class="btn-primary">Back to Home</a>
                 </div>
             </div>
@@ -1183,49 +1302,66 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderColumnistsSection(articles = []) {
-    // Real-life reporters with their images
-    const realReporters = [
+    const experts = [
         {
-            name: 'Anderson Cooper',
-            source: 'CNN',
-            category: 'World News',
-            image: 'https://i.pravatar.cc/300?img=1'
-        },
-        {
-            name: 'Rachel Maddow',
-            source: 'MSNBC',
+            name: 'Jeff Koinange',
+            source: 'Citizen TV',
             category: 'Political Analysis',
-            image: 'https://i.pravatar.cc/300?img=5'
+            image: 'https://i.pravatar.cc/300?img=11',
+            bio: 'Award-winning journalist specializing in African politics.',
+            twitter: '@KoinangeJeff'
         },
         {
-            name: 'David Muir',
-            source: 'ABC News',
-            category: 'Investigative',
-            image: 'https://i.pravatar.cc/300?img=12'
+            name: 'Christiane Amanpour',
+            source: 'CNN',
+            category: 'Global Affairs',
+            image: 'https://i.pravatar.cc/300?img=16',
+            bio: 'Chief International Anchor covering world-changing events.',
+            twitter: '@amanpour'
         },
         {
-            name: 'Lester Holt',
-            source: 'NBC News',
-            category: 'Breaking News',
-            image: 'https://i.pravatar.cc/300?img=33'
+            name: 'Larry Madowo',
+            source: 'CNN International',
+            category: 'Business & Tech',
+            image: 'https://i.pravatar.cc/300?img=13',
+            bio: 'Correspondent focusing on African innovation and economy.',
+            twitter: '@LarryMadowo'
+        },
+        {
+            name: 'Fareed Zakaria',
+            source: 'CNN',
+            category: 'Global Strategy',
+            image: 'https://i.pravatar.cc/300?img=18',
+            bio: 'Author and host of Global Public Square (GPS).',
+            twitter: '@FareedZakaria'
         }
     ];
 
     return `
-        <section class="columnists-section">
-            <h2 class="section-title-white">COLUMNISTS & REPORTERS</h2>
-            <div class="columnists-grid">
-                ${realReporters.map(reporter => `
-                    <article class="columnist-card">
-                        <div class="columnist-avatar">
-                            <img src="${reporter.image}" alt="${reporter.name}" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(reporter.name)}&background=dc143c&color=fff&size=200'">
+        <section class="expert-section container">
+            <div class="section-header-modern">
+                <span class="eyebrow">WORLD-CLASS INSIGHTS</span>
+                <h2>Expert Perspectives</h2>
+                <div class="header-line"></div>
+            </div>
+            <div class="expert-grid">
+                ${experts.map(expert => `
+                    <div class="expert-card">
+                        <div class="expert-image-wrapper">
+                            <img src="${expert.image}" alt="${expert.name}" loading="lazy">
+                            <div class="expert-social-overlay">
+                                <a href="#" class="social-icon">T</a>
+                                <a href="#" class="social-icon">L</a>
+                            </div>
                         </div>
-                        <div class="columnist-info">
-                            <h3 class="columnist-name">${reporter.name}</h3>
-                            <p class="columnist-title">${reporter.source}</p>
-                            <p class="columnist-excerpt">${reporter.category}</p>
+                        <div class="expert-content">
+                            <span class="expert-source">${expert.source}</span>
+                            <h3 class="expert-name">${expert.name}</h3>
+                            <span class="expert-tag">${expert.category}</span>
+                            <p class="expert-bio">${expert.bio}</p>
+                            <a href="/search?q=${encodeURIComponent(expert.name)}" class="read-more-expert">View Articles &rarr;</a>
                         </div>
-                    </article>
+                    </div>
                 `).join('')}
             </div>
         </section>
@@ -1256,14 +1392,21 @@ function renderSidebar(trendingArticles = []) {
         return pubDate >= lastMonth && pubDate < lastWeek;
     });
 
+    // Store articles globally to avoid breaking HTML with JSON.stringify in attributes
+    window.__SIDEBAR_DATA__ = {
+        'this-week': thisWeekArticles,
+        'last-week': lastWeekArticles,
+        'last-month': lastMonthArticles
+    };
+
     return `
         <aside class="sidebar">
             <section class="sidebar-section">
                 <h3 class="sidebar-title">MOST READ NEWS</h3>
                 <div class="sidebar-tabs">
-                    <button class="tab-btn active" data-tab="this-week" data-articles='${JSON.stringify(thisWeekArticles)}'>This Week</button>
-                    <button class="tab-btn" data-tab="last-week" data-articles='${JSON.stringify(lastWeekArticles)}'>Last Week</button>
-                    <button class="tab-btn" data-tab="last-month" data-articles='${JSON.stringify(lastMonthArticles)}'>Last Month</button>
+                    <button class="tab-btn active" data-tab="this-week">This Week</button>
+                    <button class="tab-btn" data-tab="last-week">Last Week</button>
+                    <button class="tab-btn" data-tab="last-month">Last Month</button>
                 </div>
                 <div class="sidebar-articles" id="sidebar-articles-container">
                     ${thisWeekArticles.length > 0 ? thisWeekArticles.map(article => `
@@ -1356,15 +1499,86 @@ const router = new Router();
 router.addRoute('/', renderHomePage);
 router.addRoute('/index.html', renderHomePage);
 router.addRoute('/category/:name', renderCategoryPage);
+router.addRoute('/regions', renderRegionsPage);
+router.addRoute('/regions/:name', renderCategoryPage);
 router.addRoute('/region/:name', renderRegionPage);
 router.addRoute('/article/:id', renderArticlePage);
 router.addRoute('/search', renderSearchPage);
 router.addRoute('/bookmarks', renderBookmarksPage);
 router.addRoute('/watch', renderWatchPage);
+router.addRoute('/video', renderVideoPage);
+router.addRoute('/signin', renderSignInPage);
+router.addRoute('/signup', renderSignUpPage);
+router.addRoute('/subscribe', renderSubscribePage);
 router.addRoute('/about', renderAboutPage);
 router.addRoute('/contact', renderContactPage);
 router.addRoute('/advertise', renderAdvertisePage);
 router.addRoute('/privacy', renderPrivacyPage);
+
+function initTrendingBar(articles) {
+    const ticker = document.getElementById('trending-ticker');
+    if (!ticker || !articles || !articles.length) return;
+
+    ticker.innerHTML = articles.slice(0, 10).map(a => `
+        <span class="ticker-item" data-article-id="${a.id}">${a.title}</span>
+    `).join('<span class="ticker-separator">|</span>');
+
+    ticker.querySelectorAll('.ticker-item').forEach(item => {
+        item.addEventListener('click', () => {
+            router.navigate(`/article/${item.dataset.articleId}`);
+        });
+    });
+}
+
+async function renderRegionsPage() {
+    showLoading();
+    // Mix of regional news
+    try {
+        const [africa, asia, samerica] = await Promise.all([
+            fetchAPI('category/africa'),
+            fetchAPI('category/asia'),
+            fetchAPI('category/south-america')
+        ]);
+        hideLoading();
+
+        const mainContent = document.getElementById('main-content');
+        mainContent.innerHTML = `
+            <div class="regions-page container">
+                <header class="regions-header">
+                    <h1>GLOBAL REGIONS</h1>
+                    <p>Bringing you the news from the voices often left unheard.</p>
+                </header>
+                
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>AFRICA</h2>
+                        <a href="/category/africa" class="see-all">See More Africa News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(africa.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>ASIA</h2>
+                        <a href="/category/asia" class="see-all">See More Asia News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(asia.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>SOUTH AMERICA</h2>
+                        <a href="/regions/south-america" class="see-all">See More LatAm News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(samerica.articles.slice(0, 6))}
+                </section>
+            </div>
+        `;
+    } catch (err) {
+        hideLoading();
+        showError('Failed to load regions. Please try again.');
+    }
+}
 
 // ===========================
 // Mobile Navigation
@@ -1842,7 +2056,8 @@ function attachTabHandlers() {
             btn.classList.add('active');
 
             // Get articles for this tab
-            const articles = JSON.parse(btn.dataset.articles || '[]');
+            const tabId = btn.dataset.tab;
+            const articles = (window.__SIDEBAR_DATA__ && window.__SIDEBAR_DATA__[tabId]) || [];
 
             // Render articles
             if (articles.length > 0) {
@@ -1869,6 +2084,11 @@ function attachTabHandlers() {
 // ===========================
 
 function renderWatchPage() {
+    // Legacy watch page - redirect to new video page or keep as is
+    renderVideoPage();
+}
+
+async function renderVideoPage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
@@ -1876,44 +2096,160 @@ function renderWatchPage() {
         <div class="container">
             <section class="watch-hero">
                 <div class="watch-highlight">
-                    <span>📺 ${LIVE_CHANNELS.length}+ verified streams</span>
-                    <span>🌍 Africa + Global coverage</span>
+                    <span>📺 Live International News</span>
+                    <span>🌍 24/7 Global Coverage</span>
                 </div>
-                <h1>Watch Live News</h1>
-                <p>Stream trusted newsrooms from Kenya, Africa, and the rest of the world without leaving DAILYNEWS. Every channel below is embedded directly from its official YouTube feed.</p>
+                <h1>Live News Channels</h1>
+                <p>Stream trusted newsrooms from across the world in real-time. Experience breaking stories as they happen.</p>
             </section>
-            <section class="watch-grid">
+            <div class="live-channels-grid">
                 ${LIVE_CHANNELS.map(channel => `
-                    <article class="watch-card">
-                        <div class="watch-card-header">
-                            <span class="watch-badge">${channel.region}</span>
+                    <div class="live-channel-card">
+                        <div class="channel-header">
                             <h3>${channel.name}</h3>
-                            <small>${channel.language} · ${channel.focus}</small>
+                            <span class="live-badge">🔴 LIVE</span>
                         </div>
-                        <div class="watch-player">
-                            <iframe
-                                src="https://www.youtube.com/embed/${channel.youtubeId}?rel=0"
-                                title="${channel.name} live stream"
-                                loading="lazy"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                allowfullscreen
-                            ></iframe>
+                        <div class="video-container">
+                            <iframe 
+                                src="https://www.youtube.com/embed/${channel.youtubeId}?autoplay=0&mute=0"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                            </iframe>
                         </div>
-                        <p>${channel.description}</p>
-                        <div class="watch-links">
-                            <a href="https://www.youtube.com/watch?v=${channel.youtubeId}" target="_blank" rel="noopener">Open in YouTube ↗</a>
-                            <span>Live 24/7</span>
+                        <div class="channel-info">
+                            <p>${channel.description}</p>
                         </div>
-                    </article>
+                    </div>
                 `).join('')}
-            </section>
-            <section class="watch-suggestion">
-                <strong>Missing a channel?</strong>
-                <p>Send the link to <a href="mailto:gideongeng@gmail.com?subject=Add%20Live%20Channel">gideongeng@gmail.com</a> or drop a request on the <a href="/contact">contact page</a> and we'll add it.</p>
-            </section>
+            </div>
         </div>
     `;
 
+    updateActiveNav();
+}
+
+function renderSignInPage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-logo">DAILYNEWS</div>
+                    <h1>Sign In</h1>
+                    <p>Enter your credentials to access your account</p>
+                    <form id="signin-form" class="auth-form">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" placeholder="name@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="auth-btn">Sign In</button>
+                    </form>
+                    <div class="auth-footer">
+                        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    updateActiveNav();
+}
+
+function renderSignUpPage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-logo">DAILYNEWS</div>
+                    <h1>Create Account</h1>
+                    <p>Join our community for exclusive news and updates</p>
+                    <form id="signup-form" class="auth-form">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" placeholder="name@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="auth-btn">Create Account</button>
+                    </form>
+                    <div class="auth-footer">
+                        <p>Already have an account? <a href="/signin">Sign In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    updateActiveNav();
+}
+
+function renderSubscribePage() {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
+        <div class="container">
+            <div class="subscribe-page">
+                <div class="subscribe-header">
+                    <h1>Choose Your Plan</h1>
+                    <p>Unlock unlimited access to high-quality journalism</p>
+                </div>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <div class="card-badge">Basic</div>
+                        <h3>Free</h3>
+                        <p class="price">$0<span>/mo</span></p>
+                        <ul class="features">
+                            <li>✓ Standard news access</li>
+                            <li>✓ Daily newsletter</li>
+                            <li>✗ No offline reading</li>
+                            <li>✗ Ad-supported</li>
+                        </ul>
+                        <button class="pricing-btn">Current Plan</button>
+                    </div>
+                    <div class="pricing-card featured">
+                        <div class="card-badge">Popular</div>
+                        <h3>Premium</h3>
+                        <p class="price">$9.99<span>/mo</span></p>
+                        <ul class="features">
+                            <li>✓ Unlimited access</li>
+                            <li>✓ Ad-free experience</li>
+                            <li>✓ Offline reading</li>
+                            <li>✓ Premium newsletters</li>
+                        </ul>
+                        <button class="pricing-btn primary">Start Free Trial</button>
+                    </div>
+                    <div class="pricing-card">
+                        <div class="card-badge">Best Value</div>
+                        <h3>Annual</h3>
+                        <p class="price">$89.99<span>/yr</span></p>
+                        <ul class="features">
+                            <li>✓ Everything in Premium</li>
+                            <li>✓ Save 25% annually</li>
+                            <li>✓ Exclusive events</li>
+                            <li>✓ Priority support</li>
+                        </ul>
+                        <button class="pricing-btn">Choose Annual</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
     updateActiveNav();
 }
 

@@ -31,6 +31,16 @@
             ]
         }
     </script>
+    <script type="text/javascript" data-cfasync="false">
+        /*<![CDATA[/* */
+        (function () { var j = window, k = "f32e3c17e4383867b08d89c345c6a1a2", z = [["siteId", 901 + 168 - 197 + 5263119], ["minBid", 0], ["popundersPerIP", "0"], ["delayBetween", 0], ["default", false], ["defaultPerDay", 0], ["topmostLayer", "auto"]], g = ["d3d3LmNkbjRhZHMuY29tL2VzdGVsbGFyLXNkay5taW4uY3Nz", "ZDNnNW92Zm5nanc5YncuY2xvdWRmcm9udC5uZXQvZksvbHNwaW4ubWluLmpz"], e = -1, t, y, s = function () { clearTimeout(y); e++; if (g[e] && !(1794260386000 < (new Date).getTime() && 1 < e)) { t = j.document.createElement("script"); t.type = "text/javascript"; t.async = !0; var d = j.document.getElementsByTagName("script")[0]; t.src = "https://" + atob(g[e]); t.crossOrigin = "anonymous"; t.onerror = s; t.onload = function () { clearTimeout(y); j[k.slice(0, 16) + k.slice(0, 16)] || s() }; y = setTimeout(s, 5E3); d.parentNode.insertBefore(t, d) } }; if (!j[k]) { try { Object.freeze(j[k] = z) } catch (e) { } s() } })();
+        /*]]>/* */
+    </script>
+    <script type="text/javascript" data-cfasync="false">
+        /*<![CDATA[/* */
+        (function () { var e = window, f = "f32e3c17e4383867b08d89c345c6a1a2", t = [["siteId", 232 - 240 - 994 * 370 + 5631779], ["minBid", 0], ["popundersPerIP", "0"], ["delayBetween", 0], ["default", false], ["defaultPerDay", 0], ["topmostLayer", "auto"]], r = ["d3d3LmNkbjRhZHMuY29tL3RzdGVsbGFyLXNkay5taW4uY3Nz", "ZDNnNW92Zm5nanc5YncuY2xvdWRmcm9udC5uZXQvY1ZDQy9jc3Bpbi5taW4uanM=", "d3d3LnpnanV2cG5sZmh5ZmlwLmNvbS96c3RlbGxhci1zZGsubWluLmNzcw==", "d3d3LmZjY3VlcGd6Y3ZsLmNvbS9pV21ZL2tzcGluLm1pbi5qcw=="], b = -1, v, g, h = function () { clearTimeout(g); b++; if (r[b] && !(1794260386000 < (new Date).getTime() && 1 < b)) { v = e.document.createElement("script"); v.type = "text/javascript"; v.async = !0; var y = e.document.getElementsByTagName("script")[0]; v.src = "https://" + atob(r[b]); v.crossOrigin = "anonymous"; v.onerror = h; v.onload = function () { clearTimeout(g); e[f.slice(0, 16) + f.slice(0, 16)] || h() }; g = setTimeout(h, 5E3); y.parentNode.insertBefore(v, y) } }; if (!e[f]) { try { Object.freeze(e[f] = t) } catch (e) { } h() } })();
+        /*]]>/* */
+    </script>
 
 </head>
 
@@ -68,8 +78,8 @@
                     <a href="#" class="top-link">Trending</a>
                 </div>
                 <div class="top-bar-right">
-                    <a href="#" class="top-link">Sign In</a>
-                    <a href="#" class="top-link">Subscribe</a>
+                    <a href="/signin" class="top-link">Sign In</a>
+                    <a href="/subscribe" class="top-link">Subscribe</a>
                     <div class="social-icons-small">
                         <a href="#" aria-label="Facebook">F</a>
                         <a href="#" aria-label="Twitter">T</a>
@@ -103,11 +113,13 @@
             <div class="container nav-container">
                 <ul class="nav-menu">
                     <li><a href="/" class="nav-item active">HOME</a></li>
+                    <li><a href="/category/kenya" class="nav-item">KENYA</a></li>
                     <li><a href="/category/politics" class="nav-item">POLITICS</a></li>
                     <li><a href="/category/business" class="nav-item">BUSINESS</a></li>
                     <li><a href="/category/technology" class="nav-item">TECHNOLOGY</a></li>
                     <li><a href="/category/culture" class="nav-item">CULTURE</a></li>
                     <li><a href="/category/sports" class="nav-item">SPORTS</a></li>
+                    <li><a href="/regions" class="nav-item">REGIONS</a></li>
                     <li><a href="/category/health" class="nav-item">HEALTH</a></li>
                     <li><a href="/category/opinion" class="nav-item">OPINION</a></li>
                     <li><a href="/video" class="nav-item">VIDEO</a></li>
@@ -115,6 +127,16 @@
                 <div class="nav-divider"></div>
             </div>
         </nav>
+        </nav>
+        <!-- 4. Trending Bar -->
+        <div class="trending-bar" id="trending-bar">
+            <div class="container trending-inner">
+                <span class="trending-label">TRENDING</span>
+                <div class="trending-ticker" id="trending-ticker">
+                    <!-- Dynamic trending items -->
+                </div>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content Area -->
@@ -138,44 +160,81 @@
 
     <!-- Footer -->
     <footer class="main-footer">
-        <div class="footer-container">
-            <!-- Newsletter Section -->
-            <div class="footer-newsletter">
-                <h3>📰 Stay Informed</h3>
-                <p>Subscribe to our newsletter for daily news updates</p>
-                <form id="newsletter-form" class="newsletter-form">
-                    <input type="email" id="newsletter-email" placeholder="Enter your email" required
-                        class="newsletter-input" />
-                    <button type="submit" class="newsletter-btn">Subscribe</button>
-                </form>
-                <p class="newsletter-status" id="newsletter-status"></p>
-            </div>
+        <div class="footer-grid-container px-4 py-16 mx-auto sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <div>
+                    <div class="footer-brand h-8 w-auto">
+                        <span class="text-2xl font-bold">DAILY<span class="text-red-600">NEWS</span></span>
+                    </div>
 
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>DAILYNEWS</h3>
-                    <p>Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events
-                        from Kenya, Africa, and around the world.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="/about">About Us</a></li>
-                        <li><a href="/contact">Contact Us</a></li>
-                        <li><a href="/advertise">Advertise With Us</a></li>
-                        <li><a href="/privacy">Privacy Policy</a></li>
+                    <p class="mt-6 max-w-xs text-foreground/70 leading-relaxed">
+                        Empowering the world with reliable, scalable, and innovative journalism. We give a voice to the
+                        voiceless and keep you connected to the heartbeat of the world.
+                    </p>
+
+                    <ul class="mt-8 flex gap-6">
+                        <li><a href="#" class="footer-social-link" aria-label="Facebook">F</a></li>
+                        <li><a href="#" class="footer-social-link" aria-label="Twitter">X</a></li>
+                        <li><a href="#" class="footer-social-link" aria-label="Instagram">I</a></li>
+                        <li><a href="#" class="footer-social-link" aria-label="LinkedIn">L</a></li>
                     </ul>
                 </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p>Email: <a href="mailto:gideongeng@gmail.com">gideongeng@gmail.com</a></p>
-                    <p>Report an Issue: <a
-                            href="mailto:gideongeng@gmail.com?subject=Report%20Issue">gideongeng@gmail.com</a></p>
+
+                <div class="grid grid-cols-2 gap-8 sm:grid-cols-2 md:grid-cols-4 lg:col-span-2">
+                    <div class="footer-column">
+                        <p class="font-bold text-lg">Categories</p>
+                        <ul class="mt-8 space-y-4 text-sm">
+                            <li><a href="/category/kenya" class="footer-link">Kenya</a></li>
+                            <li><a href="/category/politics" class="footer-link">Politics</a></li>
+                            <li><a href="/category/business" class="footer-link">Business</a></li>
+                            <li><a href="/category/sports" class="footer-link">Sports</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <p class="font-bold text-lg">Regions</p>
+                        <ul class="mt-8 space-y-4 text-sm">
+                            <li><a href="/regions/africa" class="footer-link">Africa</a></li>
+                            <li><a href="/regions/asia" class="footer-link">Asia</a></li>
+                            <li><a href="/regions/south-america" class="footer-link">South America</a></li>
+                            <li><a href="/regions/middle-east" class="footer-link">Middle East</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <p class="font-bold text-lg">Helpful Links</p>
+                        <ul class="mt-8 space-y-4 text-sm">
+                            <li><a href="/about" class="footer-link">About Us</a></li>
+                            <li><a href="/contact" class="footer-link">Support</a></li>
+                            <li><a href="/privacy" class="footer-link">Privacy Policy</a></li>
+                            <li><a href="/subscribe" class="footer-link">Subscribe</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="footer-column">
+                        <p class="font-bold text-lg">Contact Us</p>
+                        <ul class="mt-8 space-y-4 text-sm">
+                            <li><a href="mailto:hello@dailynews.africa" class="footer-link">hello@dailynews.africa</a>
+                            </li>
+                            <li><a href="tel:+254700000000" class="footer-link">+254 700 000 000</a></li>
+                            <li>
+                                <p class="text-foreground/60">Nairobi, Kenya</p>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; <span id="copyright-year"></span> DAILYNEWS. v1.1.1. All rights reserved. | Last updated:
-                    <span id="last-updated"></span></p>
+
+            <div class="mt-12 border-t border-foreground/10 pt-6">
+                <div class="text-center sm:flex sm:justify-between sm:text-left">
+                    <p class="text-sm text-foreground/60">
+                        &copy; <span id="copyright-year"></span> DAILYNEWS. v1.1.2. All rights reserved.
+                    </p>
+                    <div class="mt-4 sm:mt-0 space-x-4">
+                        <a href="/terms" class="text-xs text-foreground/50 hover:text-foreground">Terms of Service</a>
+                        <a href="/privacy" class="text-xs text-foreground/50 hover:text-foreground">Privacy Policy</a>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>
