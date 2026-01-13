@@ -36,42 +36,50 @@ function generateExcerpt(title, minLength = 50) {
     return `${title}. Click to read the full story and stay informed on the latest developments.`;
 }
 
+function isVideoArticle(article) {
+    const videoKeywords = ['video', 'watch', 'live', 'stream', 'broadcast', 'youtube', 'vimeo', 'exclusive clip'];
+    const titleMatch = videoKeywords.some(k => article.title?.toLowerCase().includes(k));
+    const descMatch = videoKeywords.some(k => article.description?.toLowerCase().includes(k));
+    const urlMatch = article.url?.includes('youtube.com') || article.url?.includes('youtu.be') || article.url?.includes('vimeo.com');
+    return titleMatch || descMatch || urlMatch;
+}
+
 function validateArticle(article) {
     if (!article) return false;
 
     // Must have a title
     if (!article.title || article.title.trim().length < 10) {
-        console.log('❌ [VALIDATION] Article rejected: title too short or missing');
         return false;
     }
 
     // Must have a URL
     if (!article.url || !article.url.startsWith('http')) {
-        console.log('❌ [VALIDATION] Article rejected: invalid URL');
         return false;
     }
 
-    // Description should exist and be meaningful
+    // Tag as video if applicable
+    if (isVideoArticle(article)) {
+        article.type = 'video';
+    }
+
+    // Tag as breaking if title contains certain keywords
+    const breakingKeywords = ['breaking', 'urgent', 'alert', 'just in', 'developing'];
+    if (breakingKeywords.some(k => article.title?.toLowerCase().includes(k))) {
+        article.isBreaking = true;
+    }
+
+    // Description fallback
     if (!article.description || article.description.trim().length < 20) {
-        console.log('⚠️ [VALIDATION] Article has short description, will generate fallback');
         article.description = generateExcerpt(article.title);
     }
 
-    // Ensure image exists
+    // Image fallback
     if (!article.image || article.image === 'null' || article.image === '') {
-        console.log('⚠️ [VALIDATION] Article missing image, using category placeholder');
         article.image = getCategoryPlaceholder(article.category);
     }
 
-    // Ensure category exists
-    if (!article.category) {
-        article.category = 'general';
-    }
-
-    // Ensure source exists
-    if (!article.source) {
-        article.source = 'News Source';
-    }
+    if (!article.category) article.category = 'general';
+    if (!article.source) article.source = 'News Source';
 
     return true;
 }
@@ -79,10 +87,12 @@ function validateArticle(article) {
 // HTML Sanitization & Text Cleanup
 function stripHtmlTags(html) {
     if (!html) return '';
-    // Create a temporary div to parse HTML
+    const clean = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gmi, '')
+        .replace(/on\w+="[^"]*"/gmi, '')
+        .replace(/javascript:[^"]*/gmi, '');
     const temp = document.createElement('div');
-    temp.innerHTML = html;
-    return temp.textContent || temp.innerText || '';
+    temp.textContent = clean;
+    return temp.innerHTML.replace(/<[^>]*>?/gm, '');
 }
 
 function decodeHtmlEntities(text) {
@@ -117,15 +127,113 @@ function cleanDescription(description) {
     return cleaned.trim();
 }
 
+// Deterministic ID generation to prevent 404s on refresh
+function generateArticleId(article) {
+    if (article.id && !article.id.includes('math.random')) return article.id;
+
+    // Create a slug from title + source
+    const text = `${article.title}-${article.source}`;
+    return text.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '')
+        .substring(0, 100);
+}
+
+// ===========================
+// Firebase & Auth Manager
+// ===========================
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase
+if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
+const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+
+class AuthManager {
+    static async signUp(email, password, fullName) {
+        try {
+            const result = await auth.createUserWithEmailAndPassword(email, password);
+            await result.user.updateProfile({ displayName: fullName });
+            await db.collection('users').doc(result.user.uid).set({
+                fullName,
+                email,
+                subscription: 'Free',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showToast('Account created successfully!');
+            router.navigate('/');
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    static async signIn(email, password) {
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            showToast('Welcome back!');
+            router.navigate('/');
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    static async signOut() {
+        try {
+            await auth.signOut();
+            showToast('Signed out successfully');
+            router.navigate('/');
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    static onAuthStateChanged(callback) {
+        if (auth) auth.onAuthStateChanged(callback);
+    }
+}
+
+// Global User State
+let currentUser = null;
+AuthManager.onAuthStateChanged(user => {
+    currentUser = user;
+    updateAuthUI();
+});
+
+function updateAuthUI() {
+    const navRight = document.querySelector('.nav-right-actions');
+    if (!navRight) return;
+
+    if (currentUser) {
+        navRight.innerHTML = `
+            <span class="user-greeting">Hi, ${currentUser.displayName || 'User'}</span>
+            <button onclick="AuthManager.signOut()" class="nav-btn-logout">Sign Out</button>
+        `;
+    } else {
+        navRight.innerHTML = `
+            <a href="/signin" class="nav-btn-signin">Sign In</a>
+            <a href="/subscribe" class="nav-btn-subscribe">Subscribe</a>
+        `;
+    }
+}
+
 // Advanced Deduplication using Similarity Matching
-function calculateSimilarity(str1, str2) {
-    if (!str1 || !str2) return 0;
+function calculateSimilarity(s1, s2) {
+    if (!s1 || !s2) return 0;
 
     // Convert to lowercase for comparison
-    const s1 = str1.toLowerCase();
-    const s2 = str2.toLowerCase();
+    s1 = s1.toLowerCase();
+    s2 = s2.toLowerCase();
 
-    // Quick exact match
     if (s1 === s2) return 1;
 
     // Calculate Levenshtein distance (simplified)
@@ -259,14 +367,20 @@ class Router {
         const params = new URLSearchParams(search);
 
         // Match route
-        for (const [route, handler] of Object.entries(this.routes)) {
-            const match = this.matchRoute(pathname, route);
-            if (match) {
-                this.currentRoute = route;
-                await handler(match.params, params);
-                window.scrollTo(0, 0);
-                return;
+        try {
+            for (const [route, handler] of Object.entries(this.routes)) {
+                const match = this.matchRoute(pathname, route);
+                if (match) {
+                    this.currentRoute = route;
+                    await handler(match.params, params);
+                    window.scrollTo(0, 0);
+                    return;
+                }
             }
+        } catch (error) {
+            console.error('🔥 ROUTER ERROR:', error);
+            this.showErrorPage(error.message);
+            return;
         }
 
         // 404
@@ -298,11 +412,28 @@ class Router {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
             mainContent.innerHTML = `
-                <div class="container">
-                    <div class="error-404">
-                        <h1>404 - Page Not Found</h1>
-                        <p>The page you're looking for doesn't exist.</p>
-                        <a href="/" class="btn-primary">Go Home</a>
+                <div class="container py-20 text-center">
+                    <div class="error-404 bg-white p-10 rounded-xl shadow-2xl border-t-8 border-red-600 max-w-lg mx-auto">
+                        <h1 class="text-6xl font-black text-slate-900 mb-4">404</h1>
+                        <h2 class="text-2xl font-bold text-slate-700 mb-6">Oops! Lost in the Newsroom?</h2>
+                        <p class="text-slate-500 mb-8 leading-relaxed">The article or page you're searching for seems to have been retired or moved. Let's get you back to the latest headlines.</p>
+                        <a href="/" class="inline-block bg-red-600 text-white px-8 py-3 rounded-full font-bold hover:bg-black transition-all">Back to Home</a>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    showErrorPage(message) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="container py-20 text-center">
+                    <div class="error-boundary bg-slate-50 p-10 rounded-xl border border-slate-200 max-w-lg mx-auto">
+                        <div class="text-red-600 text-5xl mb-6">⚠️</div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">System Interruption</h2>
+                        <p class="text-slate-600 mb-8">${message || 'An unexpected error occurred while loading this page.'}</p>
+                        <button onclick="window.location.reload()" class="bg-slate-900 text-white px-8 py-3 rounded-lg font-bold hover:opacity-90">Retry Connection</button>
                     </div>
                 </div>
             `;
@@ -344,123 +475,139 @@ async function fetchAPI(endpoint) {
 
         // Fallback: Fetch directly from multiple sources (Frontend Fallback)
         try {
-            if (endpoint.includes('/api/news') || endpoint.includes('/api/trending')) {
-                console.log('📡 [TRACE] Entering multi-source aggregation for:', endpoint);
+            // Extract page from endpoint if exists
+            const urlParams = new URLSearchParams(endpoint.split('?')[1]);
+            const page = urlParams.get('page') || 1;
 
-                const newsDataApiKey = 'pub_1d543e32d71f4487ba93652287a90acc';
-                const nyTimesApiKey = 'HRdesBbmlbUI9b8laRNMAaGSvFEIa6dLhv4rWOP35WywiJGHqRmc2Pmb6QBARWxR';
-                const theNewsApiKey = '2-Q_c0ydZgil3Ti859SjE1HiJxBJ6V4lQCNEUCJLJ0S65bfV';
+            const newsDataApiKey = 'pub_1d543e32d71f4487ba93652287a90acc';
+            const nyTimesApiKey = 'HRdesBbmlbUI9b8laRNMAaGSvFEIa6dLhv4rWOP35WywiJGHqRmc2Pmb6QBARWxR';
+            const theNewsApiKey = '2-Q_c0ydZgil3Ti859SjE1HiJxBJ6V4lQCNEUCJLJ0S65bfV';
 
-                // Construct NewsData URL
-                let newsDataUrl = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&language=en`;
-                if (endpoint.includes('category/')) {
-                    const category = endpoint.split('category/')[1];
-                    newsDataUrl += `&category=${category}`;
-                } else if (endpoint.includes('search?q=')) {
-                    const query = endpoint.split('search?q=')[1];
-                    newsDataUrl += `&q=${query}`;
+            // Construct NewsData URL with paging support
+            let newsDataUrl = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&language=en&page=${page}`;
+            if (endpoint.includes('category/')) {
+                const category = endpoint.split('category/')[1].split('?')[0];
+                newsDataUrl += `&category=${category}`;
+            } else if (endpoint.includes('search?q=')) {
+                const query = endpoint.split('search?q=')[1].split('&')[0];
+                newsDataUrl += `&q=${query}`;
+            }
+
+            // Construct NYTimes URL
+            let nyTimesUrl = `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${nyTimesApiKey}`;
+            if (endpoint.includes('category/')) {
+                const category = endpoint.split('category/')[1];
+                const section = category === 'politics' ? 'politics' :
+                    category === 'business' ? 'business' :
+                        category === 'sports' ? 'sports' : 'home';
+                nyTimesUrl = `https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${nyTimesApiKey}`;
+            }
+
+            // Construct TheNewsAPI URL
+            let theNewsUrl = `https://api.thenewsapi.com/v1/news/top?api_token=${theNewsApiKey}&locale=us&limit=5&language=en`;
+            if (endpoint.includes('category/')) {
+                const category = endpoint.split('category/')[1];
+                theNewsUrl += `&categories=${category}`;
+            } else if (endpoint.includes('search?q=')) {
+                const query = endpoint.split('search?q=')[1];
+                theNewsUrl += `&search=${query}`;
+            }
+
+            // RSS Feeds via rss2json proxy
+            let rssFeedsToFetch = [
+                'http://feeds.bbci.co.uk/news/world/rss.xml',
+                'http://rss.cnn.com/rss/edition_world.rss',
+                'https://www.theguardian.com/world/rss',
+                'https://www.aljazeera.com/xml/rss/all.xml',
+                'https://feeds.reuters.com/reuters/topNews'
+            ];
+
+            // Category-specific RSS feeds
+            if (endpoint.includes('category/')) {
+                const category = endpoint.split('category/')[1].split('?')[0];
+                if (category === 'sports') {
+                    rssFeedsToFetch = [
+                        'http://feeds.bbci.co.uk/sport/rss.xml',
+                        'http://rss.cnn.com/rss/edition_sport.rss',
+                        'https://www.theguardian.com/uk/sport/rss',
+                        'https://www.espn.com/espn/rss/news',
+                        'https://www.skysports.com/rss/12040'
+                    ];
+                } else if (category === 'kenya') {
+                    rssFeedsToFetch = [
+                        'https://www.standardmedia.co.ke/rss/headlines.php',
+                        'https://nation.africa/service/rss/620/view/default/rss.xml',
+                        'https://www.the-star.co.ke/rss',
+                        'https://www.kbc.co.ke/feed/',
+                        'https://www.capitalfm.co.ke/news/feed/',
+                        'https://www.kenyans.co.ke/rss.xml',
+                        'https://www.citizen.digital/rss',
+                        'https://www.tuko.co.ke/arc/outboundfeeds/rss/category/kenya/'
+                    ];
+                } else if (category === 'africa' || category === 'regions') {
+                    rssFeedsToFetch = [
+                        'https://www.aljazeera.com/xml/rss/all.xml',
+                        'http://feeds.bbci.co.uk/news/world/africa/rss.xml',
+                        'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf',
+                        'https://www.africanews.com/feed/',
+                        'https://www.reuters.com/arc/outboundfeeds/reuters/world/africa/?outputType=xml'
+                    ];
+                } else if (category === 'asia') {
+                    rssFeedsToFetch = [
+                        'http://feeds.bbci.co.uk/news/world/asia/rss.xml',
+                        'https://www.aljazeera.com/xml/rss/all.xml',
+                        'https://www.scmp.com/rss/2/feed.xml',
+                        'https://www.channelnewsasia.com/rssfeeds/8395986'
+                    ];
+                } else if (category === 'technology') {
+                    rssFeedsToFetch = [
+                        'http://feeds.bbci.co.uk/news/technology/rss.xml',
+                        'https://www.theguardian.com/uk/technology/rss',
+                        'http://rss.cnn.com/rss/edition_technology.rss',
+                        'https://www.wired.com/feed/rss',
+                        'https://www.techcrunch.com/feed/'
+                    ];
+                } else if (category === 'business') {
+                    rssFeedsToFetch = [
+                        'http://feeds.bbci.co.uk/news/business/rss.xml',
+                        'https://www.theguardian.com/uk/business/rss',
+                        'http://rss.cnn.com/rss/edition_business.rss',
+                        'https://www.forbes.com/real-time/feed/',
+                        'https://www.reuters.com/arc/outboundfeeds/reuters/business/?outputType=xml'
+                    ];
+                } else if (category === 'politics') {
+                    rssFeedsToFetch = [
+                        'http://feeds.bbci.co.uk/news/politics/rss.xml',
+                        'https://www.theguardian.com/uk/politics/rss',
+                        'https://www.aljazeera.com/xml/rss/all.xml',
+                        'http://rss.cnn.com/rss/cnn_allpolitics.rss'
+                    ];
                 }
+            }
 
-                // Construct NYTimes URL
-                let nyTimesUrl = `https://api.nytimes.com/svc/topstories/v2/home.json?api-key=${nyTimesApiKey}`;
-                if (endpoint.includes('category/')) {
-                    const category = endpoint.split('category/')[1];
-                    const section = category === 'politics' ? 'politics' :
-                        category === 'business' ? 'business' :
-                            category === 'sports' ? 'sports' : 'home';
-                    nyTimesUrl = `https://api.nytimes.com/svc/topstories/v2/${section}.json?api-key=${nyTimesApiKey}`;
-                }
+            const rssProxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
-                // Construct TheNewsAPI URL
-                let theNewsUrl = `https://api.thenewsapi.com/v1/news/top?api_token=${theNewsApiKey}&locale=us&limit=5&language=en`;
-                if (endpoint.includes('category/')) {
-                    const category = endpoint.split('category/')[1];
-                    theNewsUrl += `&categories=${category}`;
-                } else if (endpoint.includes('search?q=')) {
-                    const query = endpoint.split('search?q=')[1];
-                    theNewsUrl += `&search=${query}`;
-                }
+            const safeFetchJson = (url) => fetch(url)
+                .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
+                .catch(e => {
+                    console.log(`📡 [TRACE] Fetch failed for ${url.substring(0, 40)}... :`, e);
+                    return null;
+                });
 
-                // RSS Feeds via rss2json proxy
-                let rssFeedsToFetch = [
-                    'http://feeds.bbci.co.uk/news/world/rss.xml',
-                    'http://rss.cnn.com/rss/edition_world.rss',
-                    'https://www.theguardian.com/world/rss',
-                    'https://www.aljazeera.com/xml/rss/all.xml',
-                    'https://feeds.reuters.com/reuters/topNews'
-                ];
+            const results = await Promise.all([
+                safeFetchJson(newsDataUrl),
+                safeFetchJson(nyTimesUrl),
+                safeFetchJson(theNewsUrl),
+                ...rssFeedsToFetch.map(url => safeFetchJson(rssProxyUrl + encodeURIComponent(url)))
+            ]);
 
-                // Category-specific RSS feeds
-                if (endpoint.includes('category/')) {
-                    const category = endpoint.split('category/')[1].split('?')[0];
-                    if (category === 'sports') {
-                        rssFeedsToFetch = [
-                            'http://feeds.bbci.co.uk/sport/rss.xml',
-                            'http://rss.cnn.com/rss/edition_sport.rss',
-                            'https://www.theguardian.com/uk/sport/rss'
-                        ];
-                    } else if (category === 'kenya') {
-                        rssFeedsToFetch = [
-                            'https://www.standardmedia.co.ke/rss/headlines.php',
-                            'https://nation.africa/service/rss/620/view/default/rss.xml',
-                            'https://www.the-star.co.ke/rss'
-                        ];
-                    } else if (category === 'africa' || category === 'regions') {
-                        rssFeedsToFetch = [
-                            'https://www.aljazeera.com/xml/rss/all.xml',
-                            'http://feeds.bbci.co.uk/news/world/africa/rss.xml',
-                            'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf'
-                        ];
-                    } else if (category === 'asia') {
-                        rssFeedsToFetch = [
-                            'http://feeds.bbci.co.uk/news/world/asia/rss.xml',
-                            'https://www.aljazeera.com/xml/rss/all.xml',
-                            'http://feeds.reuters.com/reuters/worldNews'
-                        ];
-                    } else if (category === 'technology') {
-                        rssFeedsToFetch = [
-                            'http://feeds.bbci.co.uk/news/technology/rss.xml',
-                            'https://www.theguardian.com/uk/technology/rss',
-                            'http://rss.cnn.com/rss/edition_technology.rss'
-                        ];
-                    } else if (category === 'business') {
-                        rssFeedsToFetch = [
-                            'http://feeds.bbci.co.uk/news/business/rss.xml',
-                            'https://www.theguardian.com/uk/business/rss',
-                            'http://rss.cnn.com/rss/edition_business.rss'
-                        ];
-                    } else if (category === 'politics') {
-                        rssFeedsToFetch = [
-                            'http://feeds.bbci.co.uk/news/politics/rss.xml',
-                            'https://www.theguardian.com/uk/politics/rss',
-                            'https://www.aljazeera.com/xml/rss/all.xml'
-                        ];
-                    }
-                }
+            console.log('📊 [TRACE] API Results Summary:', results.map(r => r ? 'SUCCESS' : 'FAIL'));
+            let aggregatedArticles = [];
 
-                const rssProxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=';
-
-                const safeFetchJson = (url) => fetch(url)
-                    .then(r => r.ok ? r.json() : Promise.reject(`HTTP ${r.status}`))
-                    .catch(e => {
-                        console.log(`📡 [TRACE] Fetch failed for ${url.substring(0, 40)}... :`, e);
-                        return null;
-                    });
-
-                const results = await Promise.all([
-                    safeFetchJson(newsDataUrl),
-                    safeFetchJson(nyTimesUrl),
-                    safeFetchJson(theNewsUrl),
-                    ...rssFeedsToFetch.map(url => safeFetchJson(rssProxyUrl + encodeURIComponent(url)))
-                ]);
-
-                console.log('📊 [TRACE] API Results Summary:', results.map(r => r ? 'SUCCESS' : 'FAIL'));
-                let aggregatedArticles = [];
-
-                // Process NewsData
-                if (results[0] && results[0].results) {
-                    const newsDataArticles = results[0].results.map(a => ({
-                        id: a.article_id || Math.random().toString(36).substr(2, 9),
+            // Process NewsData
+            if (results[0] && results[0].results) {
+                const newsDataArticles = results[0].results.map(a => {
+                    const baseArticle = {
                         title: a.title,
                         description: a.description || 'No description available',
                         content: a.content || a.description || '',
@@ -470,37 +617,41 @@ async function fetchAPI(endpoint) {
                         source: a.source_id?.toUpperCase() || 'NEWSDATA',
                         category: a.category?.[0] || 'general',
                         author: a.creator?.[0] || 'Staff Writer'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...newsDataArticles];
-                }
+                    };
+                    baseArticle.id = generateArticleId(baseArticle);
+                    return baseArticle;
+                });
+                aggregatedArticles = [...aggregatedArticles, ...newsDataArticles];
+            }
 
-                // Process NYTimes
-                if (results[1] && results[1].results) {
-                    const nyTimesArticles = results[1].results.map(a => {
-                        const multimedia = a.multimedia || [];
-                        let imageUrl = '/images/World Bank.jpg';
-                        if (multimedia.length > 0) imageUrl = multimedia[0].url;
+            // Process NYTimes
+            if (results[1] && results[1].results) {
+                const nyTimesArticles = results[1].results.map(a => {
+                    const multimedia = a.multimedia || [];
+                    let imageUrl = '/images/World Bank.jpg';
+                    if (multimedia.length > 0) imageUrl = multimedia[0].url;
 
-                        return {
-                            id: Math.random().toString(36).substr(2, 9),
-                            title: a.title,
-                            description: a.abstract || 'No description available',
-                            content: a.abstract || '',
-                            url: a.url,
-                            image: imageUrl,
-                            publishedAt: a.published_date || new Date().toISOString(),
-                            source: 'THE NEW YORK TIMES',
-                            category: a.section || 'world',
-                            author: a.byline || 'NYT'
-                        };
-                    });
-                    aggregatedArticles = [...aggregatedArticles, ...nyTimesArticles];
-                }
+                    const baseArticle = {
+                        title: a.title,
+                        description: a.abstract || 'No description available',
+                        content: a.abstract || '',
+                        url: a.url,
+                        image: imageUrl,
+                        publishedAt: a.published_date || new Date().toISOString(),
+                        source: 'THE NEW YORK TIMES',
+                        category: a.section || 'world',
+                        author: a.byline || 'NYT'
+                    };
+                    baseArticle.id = generateArticleId(baseArticle);
+                    return baseArticle;
+                });
+                aggregatedArticles = [...aggregatedArticles, ...nyTimesArticles];
+            }
 
-                // Process TheNewsAPI
-                if (results[2] && results[2].data) {
-                    const theNewsArticles = results[2].data.map(a => ({
-                        id: a.uuid,
+            // Process TheNewsAPI
+            if (results[2] && results[2].data) {
+                const theNewsArticles = results[2].data.map(a => {
+                    const baseArticle = {
                         title: a.title,
                         description: a.description || 'No description available',
                         content: a.content || '',
@@ -510,157 +661,153 @@ async function fetchAPI(endpoint) {
                         source: a.source?.toUpperCase() || 'THENEWSAPI',
                         category: a.categories?.[0] || 'general',
                         author: 'Reporter'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...theNewsArticles];
-                }
-
-                // Process BBC RSS (results[3])
-                if (results[3] && results[3].items) {
-                    const bbcArticles = results[3].items.slice(0, 10).map(a => ({
-                        id: a.guid || Math.random().toString(36).substr(2, 9),
-                        title: cleanDescription(a.title),
-                        description: cleanDescription(a.description || a.content) || 'Read the full story on BBC News',
-                        content: cleanDescription(a.content || a.description) || '',
-                        url: a.link,
-                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                        publishedAt: a.pubDate || new Date().toISOString(),
-                        source: 'BBC NEWS',
-                        category: 'world',
-                        author: 'BBC News'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...bbcArticles];
-                }
-
-                // Process CNN RSS (results[4])
-                if (results[4] && results[4].items) {
-                    const cnnArticles = results[4].items.slice(0, 10).map(a => ({
-                        id: a.guid || Math.random().toString(36).substr(2, 9),
-                        title: cleanDescription(a.title),
-                        description: cleanDescription(a.description || a.content) || 'Read the full story on CNN',
-                        content: cleanDescription(a.content || a.description) || '',
-                        url: a.link,
-                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                        publishedAt: a.pubDate || new Date().toISOString(),
-                        source: 'CNN',
-                        category: 'world',
-                        author: 'CNN'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...cnnArticles];
-                }
-
-                // Process Guardian RSS (results[5])
-                if (results[5] && results[5].items) {
-                    const guardianArticles = results[5].items.slice(0, 10).map(a => ({
-                        id: a.guid || Math.random().toString(36).substr(2, 9),
-                        title: cleanDescription(a.title),
-                        description: cleanDescription(a.description || a.content) || 'Read the full story on The Guardian',
-                        content: cleanDescription(a.content || a.description) || '',
-                        url: a.link,
-                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                        publishedAt: a.pubDate || new Date().toISOString(),
-                        source: 'THE GUARDIAN',
-                        category: 'world',
-                        author: 'The Guardian'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...guardianArticles];
-                }
-
-                // Process Al Jazeera RSS (results[6])
-                if (results[6] && results[6].items) {
-                    const alJazeeraArticles = results[6].items.slice(0, 10).map(a => ({
-                        id: a.guid || Math.random().toString(36).substr(2, 9),
-                        title: cleanDescription(a.title),
-                        description: cleanDescription(a.description || a.content) || 'Read the full story on Al Jazeera',
-                        content: cleanDescription(a.content || a.description) || '',
-                        url: a.link,
-                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                        publishedAt: a.pubDate || new Date().toISOString(),
-                        source: 'AL JAZEERA',
-                        category: 'world',
-                        author: 'Al Jazeera'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...alJazeeraArticles];
-                }
-
-                // Process Reuters RSS (results[7])
-                if (results[7] && results[7].items) {
-                    const reutersArticles = results[7].items.slice(0, 10).map(a => ({
-                        id: a.guid || Math.random().toString(36).substr(2, 9),
-                        title: cleanDescription(a.title),
-                        description: cleanDescription(a.description || a.content) || 'Read the full story on Reuters',
-                        content: cleanDescription(a.content || a.description) || '',
-                        url: a.link,
-                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                        publishedAt: a.pubDate || new Date().toISOString(),
-                        source: 'REUTERS',
-                        category: 'world',
-                        author: 'Reuters'
-                    }));
-                    aggregatedArticles = [...aggregatedArticles, ...reutersArticles];
-                }
-
-                console.log('📈 [TRACE] Total Aggregated Articles (before validation):', aggregatedArticles.length);
-
-                // Validate and filter articles
-                aggregatedArticles = aggregatedArticles.filter(validateArticle);
-                console.log('✅ [TRACE] Valid Articles After Filtering:', aggregatedArticles.length);
-
-                // Deduplicate articles
-                aggregatedArticles = deduplicateArticles(aggregatedArticles);
-
-                // Apply Category Filtering if relevant
-                if (endpoint.includes('category/')) {
-                    const category = endpoint.split('category/')[1].split('?')[0];
-                    console.log(`🎯 [TRACE] Applying category filtering for: ${category}`);
-                    aggregatedArticles = filterByCategory(aggregatedArticles, category);
-                }
-
-                hideLoading();
-
-                if (aggregatedArticles.length > 0) {
-                    console.log('✅ [TRACE] Returning aggregated articles.');
-                    // Sort by date
-                    aggregatedArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-
-                    // Basic de-duplication by title
-                    const seenTitles = new Set();
-                    aggregatedArticles = aggregatedArticles.filter(item => {
-                        if (seenTitles.has(item.title)) return false;
-                        seenTitles.add(item.title);
-                        return true;
-                    });
-
-                    // PERSISTENCE FIX: Save articles to local storage to prevent 404 on refresh
-                    const storedArticles = JSON.parse(localStorage.getItem('news_cache') || '{}');
-                    aggregatedArticles.forEach(a => {
-                        storedArticles[a.id] = a;
-                    });
-                    // Keep only last 400 articles to save space
-                    const keys = Object.keys(storedArticles);
-                    if (keys.length > 400) {
-                        keys.slice(0, keys.length - 400).forEach(k => delete storedArticles[k]);
-                    }
-                    localStorage.setItem('news_cache', JSON.stringify(storedArticles));
-
-                    return {
-                        status: 'success',
-                        articles: aggregatedArticles
                     };
-                }
-                throw new Error('No results from any direct API');
+                    baseArticle.id = a.uuid || generateArticleId(baseArticle);
+                    return baseArticle;
+                });
+                aggregatedArticles = [...aggregatedArticles, ...theNewsArticles];
             }
 
-            // Final Fallback: Mock Data
+            // Process BBC RSS (results[3])
+            if (results[3] && results[3].items) {
+                const bbcArticles = results[3].items.slice(0, 10).map(a => {
+                    const baseArticle = {
+                        title: cleanDescription(a.title),
+                        description: cleanDescription(a.description || a.content) || 'Read the full story',
+                        content: cleanDescription(a.content || a.description) || '',
+                        url: a.link,
+                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                        publishedAt: a.pubDate || new Date().toISOString(),
+                        source: results[3].feed.title.toUpperCase(),
+                        category: 'world',
+                        author: results[3].feed.title
+                    };
+                    baseArticle.id = generateArticleId(baseArticle);
+                    return baseArticle;
+                });
+                aggregatedArticles = [...aggregatedArticles, ...bbcArticles];
+            }
+
+            // Process CNN RSS (results[4])
+            if (results[4] && results[4].items) {
+                const cnnArticles = results[4].items.slice(0, 10).map(a => ({
+                    id: a.guid || Math.random().toString(36).substr(2, 9),
+                    title: cleanDescription(a.title),
+                    description: cleanDescription(a.description || a.content) || 'Read the full story on CNN',
+                    content: cleanDescription(a.content || a.description) || '',
+                    url: a.link,
+                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                    publishedAt: a.pubDate || new Date().toISOString(),
+                    source: 'CNN',
+                    category: 'world',
+                    author: 'CNN'
+                }));
+                aggregatedArticles = [...aggregatedArticles, ...cnnArticles];
+            }
+
+            // Process Guardian RSS (results[5])
+            if (results[5] && results[5].items) {
+                const guardianArticles = results[5].items.slice(0, 10).map(a => ({
+                    id: a.guid || Math.random().toString(36).substr(2, 9),
+                    title: cleanDescription(a.title),
+                    description: cleanDescription(a.description || a.content) || 'Read the full story on The Guardian',
+                    content: cleanDescription(a.content || a.description) || '',
+                    url: a.link,
+                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                    publishedAt: a.pubDate || new Date().toISOString(),
+                    source: 'THE GUARDIAN',
+                    category: 'world',
+                    author: 'The Guardian'
+                }));
+                aggregatedArticles = [...aggregatedArticles, ...guardianArticles];
+            }
+
+            // Process Al Jazeera RSS (results[6])
+            if (results[6] && results[6].items) {
+                const alJazeeraArticles = results[6].items.slice(0, 10).map(a => ({
+                    id: a.guid || Math.random().toString(36).substr(2, 9),
+                    title: cleanDescription(a.title),
+                    description: cleanDescription(a.description || a.content) || 'Read the full story on Al Jazeera',
+                    content: cleanDescription(a.content || a.description) || '',
+                    url: a.link,
+                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                    publishedAt: a.pubDate || new Date().toISOString(),
+                    source: 'AL JAZEERA',
+                    category: 'world',
+                    author: 'Al Jazeera'
+                }));
+                aggregatedArticles = [...aggregatedArticles, ...alJazeeraArticles];
+            }
+
+            // Process Reuters RSS (results[7])
+            if (results[7] && results[7].items) {
+                const reutersArticles = results[7].items.slice(0, 10).map(a => ({
+                    id: a.guid || Math.random().toString(36).substr(2, 9),
+                    title: cleanDescription(a.title),
+                    description: cleanDescription(a.description || a.content) || 'Read the full story on Reuters',
+                    content: cleanDescription(a.content || a.description) || '',
+                    url: a.link,
+                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                    publishedAt: a.pubDate || new Date().toISOString(),
+                    source: 'REUTERS',
+                    category: 'world',
+                    author: 'Reuters'
+                }));
+                aggregatedArticles = [...aggregatedArticles, ...reutersArticles];
+            }
+
+            console.log('📈 [TRACE] Total Aggregated Articles (before validation):', aggregatedArticles.length);
+
+            // Validate and filter articles
+            aggregatedArticles = aggregatedArticles.filter(validateArticle);
+            console.log('✅ [TRACE] Valid Articles After Filtering:', aggregatedArticles.length);
+
+            // Deduplicate articles
+            aggregatedArticles = deduplicateArticles(aggregatedArticles);
+
+            // Apply Category Filtering if relevant
+            if (endpoint.includes('category/')) {
+                const category = endpoint.split('category/')[1].split('?')[0];
+                console.log(`🎯 [TRACE] Applying category filtering for: ${category}`);
+                aggregatedArticles = filterByCategory(aggregatedArticles, category);
+            }
+
             hideLoading();
-            console.log('🧱 [TRACE] Fallback returned empty or wrong endpoint. Using mocks.');
-            return {
-                status: 'success',
-                articles: getMockArticles(12),
-                count: 12
-            };
+
+            if (aggregatedArticles.length > 0) {
+                console.log('✅ [TRACE] Returning aggregated articles.');
+                // Sort by date
+                aggregatedArticles.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+                // Basic de-duplication by title
+                const seenTitles = new Set();
+                aggregatedArticles = aggregatedArticles.filter(item => {
+                    if (seenTitles.has(item.title)) return false;
+                    seenTitles.add(item.title);
+                    return true;
+                });
+
+                // PERSISTENCE FIX: Save articles to local storage to prevent 404 on refresh
+                const storedArticles = JSON.parse(localStorage.getItem('news_cache') || '{}');
+                aggregatedArticles.forEach(a => {
+                    storedArticles[a.id] = a;
+                });
+                // Keep only last 400 articles to save space
+                const keys = Object.keys(storedArticles);
+                if (keys.length > 400) {
+                    keys.slice(0, keys.length - 400).forEach(k => delete storedArticles[k]);
+                }
+                localStorage.setItem('news_cache', JSON.stringify(storedArticles));
+
+                return {
+                    status: 'success',
+                    articles: aggregatedArticles
+                };
+            }
+            throw new Error('No results from any direct API');
         } catch (fallbackError) {
             hideLoading();
-            console.error('💣 [TRACE] FINAL FALLBACK ERROR:', fallbackError);
+            console.log('🧱 [TRACE] Fallback returned empty or wrong endpoint. Using mocks.');
             return {
                 status: 'success',
                 articles: getMockArticles(12),
@@ -1044,6 +1191,11 @@ async function renderArticlePage(params) {
                             </div>
                             
                             <div class="article-content">
+                                ${cachedArticle.type === 'video' && cachedArticle.url && cachedArticle.url.includes('youtube.com') ? `
+                                    <div class="video-container mb-8">
+                                        <iframe width="100%" height="450" src="https://www.youtube.com/embed/${cachedArticle.url.split('v=')[1]?.split('&')[0]}" frameborder="0" allowfullscreen></iframe>
+                                    </div>
+                                ` : ''}
                                 <p class="article-lead">${cachedArticle.description || ''}</p>
                                 <div class="article-body">
                                     ${cachedArticle.content || cachedArticle.description || 'Full coverage is available at the source.'}
@@ -1306,60 +1458,62 @@ function renderColumnistsSection(articles = []) {
         {
             name: 'Jeff Koinange',
             source: 'Citizen TV',
-            category: 'Political Analysis',
-            image: 'https://i.pravatar.cc/300?img=11',
-            bio: 'Award-winning journalist specializing in African politics.',
-            twitter: '@KoinangeJeff'
-        },
-        {
-            name: 'Christiane Amanpour',
-            source: 'CNN',
-            category: 'Global Affairs',
-            image: 'https://i.pravatar.cc/300?img=16',
-            bio: 'Chief International Anchor covering world-changing events.',
-            twitter: '@amanpour'
+            category: 'Politics & Society',
+            image: 'https://pbs.twimg.com/profile_images/1643194038165749760/9nKz7c6A_400x400.jpg',
+            bio: 'Award-winning Kenyan journalist, host of JKL and former CNN correspondent with over 30 years of experience.',
+            recentArticles: [
+                { title: 'The Future of Kenyan Democracy', url: '/search?q=Jeff+Koinange' },
+                { title: 'Spotlight on Regional Integration', url: '/search?q=Jeff+Koinange' }
+            ]
         },
         {
             name: 'Larry Madowo',
             source: 'CNN International',
             category: 'Business & Tech',
-            image: 'https://i.pravatar.cc/300?img=13',
-            bio: 'Correspondent focusing on African innovation and economy.',
-            twitter: '@LarryMadowo'
+            image: 'https://pbs.twimg.com/profile_images/1792138927959244800/8d8A0V5m_400x400.jpg',
+            bio: 'CNN International Correspondent based in Nairobi. Former BBC Africa Business Editor and tech enthusiast.',
+            recentArticles: [
+                { title: 'Africa\'s Silicon Savannah Tech Boom', url: '/search?q=Larry+Madowo' },
+                { title: 'Digital Transformation in East Africa', url: '/search?q=Larry+Madowo' }
+            ]
         },
         {
-            name: 'Fareed Zakaria',
+            name: 'Christiane Amanpour',
             source: 'CNN',
-            category: 'Global Strategy',
-            image: 'https://i.pravatar.cc/300?img=18',
-            bio: 'Author and host of Global Public Square (GPS).',
-            twitter: '@FareedZakaria'
+            category: 'Global Affairs',
+            image: 'https://pbs.twimg.com/profile_images/1381987515152060421/yR15mI2f_400x400.jpg',
+            bio: 'CNN Chief International Anchor and one of the most respected journalists in the world covering conflict and diplomacy.',
+            recentArticles: [
+                { title: 'Global Diplomacy in a Fragmented World', url: '/search?q=Christiane+Amanpour' },
+                { title: 'Voices from the Frontlines', url: '/search?q=Christiane+Amanpour' }
+            ]
         }
     ];
 
     return `
-        <section class="expert-section container">
+        <section class="expert-section">
             <div class="section-header-modern">
-                <span class="eyebrow">WORLD-CLASS INSIGHTS</span>
+                <span class="eyebrow">ELITE ANALYSIS</span>
                 <h2>Expert Perspectives</h2>
                 <div class="header-line"></div>
             </div>
-            <div class="expert-grid">
+            
+            <div class="expert-list-vertical">
                 ${experts.map(expert => `
-                    <div class="expert-card">
-                        <div class="expert-image-wrapper">
-                            <img src="${expert.image}" alt="${expert.name}" loading="lazy">
-                            <div class="expert-social-overlay">
-                                <a href="#" class="social-icon">T</a>
-                                <a href="#" class="social-icon">L</a>
-                            </div>
+                    <div class="expert-card-v">
+                        <div class="expert-img-container">
+                            <img src="${expert.image}" alt="${expert.name}" loading="lazy" onerror="this.src='https://i.pravatar.cc/300?u=${expert.name}'">
                         </div>
-                        <div class="expert-content">
-                            <span class="expert-source">${expert.source}</span>
+                        <div class="expert-info-v">
                             <h3 class="expert-name">${expert.name}</h3>
-                            <span class="expert-tag">${expert.category}</span>
+                            <div class="expert-title">${expert.category} | ${expert.source}</div>
                             <p class="expert-bio">${expert.bio}</p>
-                            <a href="/search?q=${encodeURIComponent(expert.name)}" class="read-more-expert">View Articles &rarr;</a>
+                            <div class="expert-article-links">
+                                <span class="recent-label" style="font-size: 0.75rem; font-weight: 800; color: #999; margin-bottom: 5px; display: block;">RECENT ANALYSIS</span>
+                                ${expert.recentArticles.map(art => `
+                                    <a href="${art.url}" class="expert-pub-link">${art.title} &rarr;</a>
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
                 `).join('')}
@@ -1519,8 +1673,18 @@ function initTrendingBar(articles) {
     const ticker = document.getElementById('trending-ticker');
     if (!ticker || !articles || !articles.length) return;
 
-    ticker.innerHTML = articles.slice(0, 10).map(a => `
-        <span class="ticker-item" data-article-id="${a.id}">${a.title}</span>
+    // Sort: Breaking first, then latest
+    const sorted = [...articles].sort((a, b) => {
+        if (a.isBreaking && !b.isBreaking) return -1;
+        if (!a.isBreaking && b.isBreaking) return 1;
+        return new Date(b.publishedAt) - new Date(a.publishedAt);
+    });
+
+    ticker.innerHTML = sorted.slice(0, 15).map(a => `
+        <span class="ticker-item ${a.isBreaking ? 'breaking-item' : ''}" data-article-id="${a.id}">
+            ${a.isBreaking ? '<span class="breaking-tag">BREAKING</span>' : ''}
+            ${a.type === 'video' ? '📽️ ' : ''}${a.title}
+        </span>
     `).join('<span class="ticker-separator">|</span>');
 
     ticker.querySelectorAll('.ticker-item').forEach(item => {
@@ -1903,27 +2067,58 @@ function addLoadMoreButton(container, category) {
 }
 
 async function loadMoreArticles(category) {
+    const btn = document.querySelector('.load-more-btn');
+    if (!btn || btn.disabled) return;
+
+    btn.innerText = '📡 SEARCHING SOURCES...';
+    btn.disabled = true;
+
     try {
         currentPage++;
-        const data = await fetchAPI(`/api/news/category/${category}?page=${currentPage}`);
+        // Fetch from multi-source API with potential page/offset
+        const news = await fetchAPI(category ? `category/${category}?page=${currentPage}` : `top-headlines?page=${currentPage}`);
 
-        if (data.articles && data.articles.length > 0) {
-            loadedArticles = [...loadedArticles, ...data.articles];
-            cacheArticles(data.articles);
-
-            const gridContainer = document.querySelector('.grid-container');
-            data.articles.forEach(article => {
-                const card = createArticleCard(article);
-                gridContainer.appendChild(card);
-            });
-
-            showToast(`Loaded ${data.articles.length} more articles`);
+        if (news.articles && news.articles.length > 0) {
+            const grid = document.querySelector('.news-grid') || document.querySelector('.grid-container');
+            if (grid) {
+                // Render and append
+                news.articles.forEach(article => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card';
+                    card.innerHTML = `
+                        <div class="news-image" onclick="router.navigate('/article/${article.id}')">
+                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                            ${article.type === 'video' ? '<div class="video-badge">▶ VIDEO</div>' : ''}
+                        </div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="news-category">${article.category?.toUpperCase() || 'GENERAL'}</span>
+                                <span class="news-source">${article.source}</span>
+                            </div>
+                            <h3 class="news-title" onclick="router.navigate('/article/${article.id}')">${article.title}</h3>
+                            <p class="news-excerpt">${article.description}</p>
+                            <div class="news-footer">
+                                <span class="news-date">${formatDate(article.publishedAt)}</span>
+                                <button class="bookmark-btn" onclick="toggleBookmark('${article.id}')">
+                                    <i class="${isBookmarked(article.id) ? 'fas' : 'far'} fa-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                showToast(`Loaded ${news.articles.length} additional stories.`);
+            }
+            btn.innerText = '📰 Load More Articles';
+            btn.disabled = false;
         } else {
-            showToast('No more articles available');
-            document.querySelector('.load-more-btn')?.remove();
+            btn.innerText = 'END OF CONTENT';
+            btn.style.opacity = '0.5';
         }
     } catch (error) {
-        showToast('Failed to load more articles');
+        console.error('Load more failed:', error);
+        btn.innerText = '⚠️ RETRY';
+        btn.disabled = false;
     }
 }
 
@@ -2134,31 +2329,38 @@ function renderSignInPage() {
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-        <div class="container">
-            <div class="auth-container">
-                <div class="auth-card">
-                    <div class="auth-logo">DAILYNEWS</div>
-                    <h1>Sign In</h1>
-                    <p>Enter your credentials to access your account</p>
-                    <form id="signin-form" class="auth-form">
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="email" placeholder="name@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="auth-btn">Sign In</button>
-                    </form>
-                    <div class="auth-footer">
-                        <p>Don't have an account? <a href="/signup">Sign Up</a></p>
-                        <a href="#" class="forgot-password">Forgot password?</a>
+        <div class="container py-20">
+            <div class="auth-card max-w-md mx-auto bg-white p-10 rounded-2xl shadow-2xl">
+                <div class="text-center mb-10">
+                    <h1 class="text-3xl font-black text-slate-900">Welcome Back</h1>
+                    <p class="text-slate-500 mt-2">Sign in to sync your bookmarks and subscription</p>
+                </div>
+                <form id="signin-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                        <input type="email" id="signin-email" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
                     </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Password</label>
+                        <input type="password" id="signin-password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-slate-900 text-white font-bold rounded-lg hover:bg-black transition-all">Sign In</button>
+                </form>
+                <div class="text-center mt-8 pt-8 border-t border-slate-100">
+                    <p class="text-slate-500">Don't have an account? <a href="/signup" class="text-red-600 font-bold">Sign Up</a></p>
                 </div>
             </div>
         </div>
     `;
+
+    const form = document.getElementById('signin-form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('signin-email').value;
+        const password = document.getElementById('signin-password').value;
+        AuthManager.signIn(email, password);
+    });
+
     updateActiveNav();
 }
 
@@ -2167,34 +2369,43 @@ function renderSignUpPage() {
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-        <div class="container">
-            <div class="auth-container">
-                <div class="auth-card">
-                    <div class="auth-logo">DAILYNEWS</div>
-                    <h1>Create Account</h1>
-                    <p>Join our community for exclusive news and updates</p>
-                    <form id="signup-form" class="auth-form">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" placeholder="John Doe" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="email" placeholder="name@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="auth-btn">Create Account</button>
-                    </form>
-                    <div class="auth-footer">
-                        <p>Already have an account? <a href="/signin">Sign In</a></p>
+        <div class="container py-20">
+            <div class="auth-card max-w-md mx-auto bg-white p-10 rounded-2xl shadow-2xl">
+                <div class="text-center mb-10">
+                    <h1 class="text-3xl font-black text-slate-900">Join DailyNews</h1>
+                    <p class="text-slate-500 mt-2">Get personalized updates and premium features</p>
+                </div>
+                <form id="signup-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
+                        <input type="text" id="signup-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
                     </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                        <input type="email" id="signup-email" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Create Password</label>
+                        <input type="password" id="signup-password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none" required>
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all">Create Account</button>
+                </form>
+                <div class="text-center mt-8 pt-8 border-t border-slate-100">
+                    <p class="text-slate-500">Already have an account? <a href="/signin" class="text-slate-900 font-bold">Sign In</a></p>
                 </div>
             </div>
         </div>
     `;
+
+    const form = document.getElementById('signup-form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        AuthManager.signUp(email, password, name);
+    });
+
     updateActiveNav();
 }
 
@@ -2203,54 +2414,103 @@ function renderSubscribePage() {
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-        <div class="container">
-            <div class="subscribe-page">
-                <div class="subscribe-header">
-                    <h1>Choose Your Plan</h1>
-                    <p>Unlock unlimited access to high-quality journalism</p>
-                </div>
-                <div class="pricing-grid">
-                    <div class="pricing-card">
-                        <div class="card-badge">Basic</div>
-                        <h3>Free</h3>
-                        <p class="price">$0<span>/mo</span></p>
-                        <ul class="features">
-                            <li>✓ Standard news access</li>
-                            <li>✓ Daily newsletter</li>
-                            <li>✗ No offline reading</li>
-                            <li>✗ Ad-supported</li>
+        <div class="container py-20 text-center">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-4xl font-black text-slate-900 mb-4">Elevate Your Experience</h1>
+                <p class="text-xl text-slate-600 mb-12">Choose the plan that's right for you. Secure payments via PayPal.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                    <!-- Standard Plan -->
+                    <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
+                        <h3 class="text-xl font-bold mb-2">Standard</h3>
+                        <div class="text-3xl font-black mb-6">$0 <span class="text-sm font-normal text-slate-500">/month</span></div>
+                        <ul class="space-y-4 mb-10 flex-grow">
+                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Basic news access</li>
+                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Standard newsletters</li>
+                            <li class="flex items-center text-slate-400"><span class="mr-2">✗</span> Ad-Free experience</li>
                         </ul>
-                        <button class="pricing-btn">Current Plan</button>
+                        <button class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-lg cursor-not-allowed">Current Plan</button>
                     </div>
-                    <div class="pricing-card featured">
-                        <div class="card-badge">Popular</div>
-                        <h3>Premium</h3>
-                        <p class="price">$9.99<span>/mo</span></p>
-                        <ul class="features">
-                            <li>✓ Unlimited access</li>
-                            <li>✓ Ad-free experience</li>
-                            <li>✓ Offline reading</li>
-                            <li>✓ Premium newsletters</li>
+
+                    <!-- Premium Plan -->
+                    <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border-4 border-red-600 transform scale-105 flex flex-col relative">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-1 rounded-full text-xs font-bold">MOST POPULAR</div>
+                        <h3 class="text-xl font-bold text-white mb-2">Premium</h3>
+                        <div class="text-3xl font-black text-white mb-6">$9.99 <span class="text-sm font-normal text-slate-400">/month</span></div>
+                        <ul class="space-y-4 mb-10 flex-grow">
+                            <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Ad-Free Journalism</li>
+                            <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Exclusive Expert Analysis</li>
+                            <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Breaking News SMS Alerts</li>
                         </ul>
-                        <button class="pricing-btn primary">Start Free Trial</button>
+                        <div id="paypal-button-container-premium"></div>
                     </div>
-                    <div class="pricing-card">
-                        <div class="card-badge">Best Value</div>
-                        <h3>Annual</h3>
-                        <p class="price">$89.99<span>/yr</span></p>
-                        <ul class="features">
-                            <li>✓ Everything in Premium</li>
-                            <li>✓ Save 25% annually</li>
-                            <li>✓ Exclusive events</li>
-                            <li>✓ Priority support</li>
+
+                    <!-- Annual Plan -->
+                    <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
+                        <h3 class="text-xl font-bold mb-2">Annual</h3>
+                        <div class="text-3xl font-black mb-6">$89.99 <span class="text-sm font-normal text-slate-500">/year</span></div>
+                        <ul class="space-y-4 mb-10 flex-grow text-sm">
+                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> All Premium level features</li>
+                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Save 25% vs monthly</li>
+                            <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> VIP Event invites</li>
                         </ul>
-                        <button class="pricing-btn">Choose Annual</button>
+                        <div id="paypal-button-container-annual"></div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+
+    if (typeof paypal !== 'undefined') {
+        const initButtons = (id, amount, desc) => {
+            paypal.Buttons({
+                createOrder: (data, actions) => {
+                    return actions.order.create({
+                        purchase_units: [{
+                            description: desc,
+                            amount: { currency_code: 'USD', value: amount },
+                            payee: { email_address: 'ngideon302@gmail.com' }
+                        }]
+                    });
+                },
+                onApprove: async (data, actions) => {
+                    const order = await actions.order.capture();
+                    handleSubscriptionSuccess(order, desc);
+                },
+                onError: (err) => {
+                    console.error('PayPal Error:', err);
+                    showError('Payment failed to initialize.');
+                }
+            }).render(`#${id}`);
+        };
+
+        initButtons('paypal-button-container-premium', '9.99', 'DailyNews Premium Monthly');
+        initButtons('paypal-button-container-annual', '89.99', 'DailyNews Premium Annual');
+    }
+
     updateActiveNav();
+}
+
+async function handleSubscriptionSuccess(order, plan) {
+    if (!currentUser) {
+        showToast('Success! Sign in to activate benefits.');
+        localStorage.setItem('pending_subscription', JSON.stringify({ orderId: order.id, plan }));
+        router.navigate('/signup');
+        return;
+    }
+
+    try {
+        await db.collection('users').doc(currentUser.uid).update({
+            subscription: plan,
+            orderId: order.id,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast(`✅ You are now ${plan}!`);
+        router.navigate('/');
+    } catch (error) {
+        console.error('Update failed:', error);
+        showError('Could not link your subscription. Contact support.');
+    }
 }
 
 // ===========================

@@ -1867,9 +1867,182 @@ img {
     }
 }
 
-/* ===========================
-   Professional Design Upgrade
-   =========================== */
+/* Professional Bottom Trending Bar */
+.trending-bar-bottom {
+    background: #000;
+    color: #fff;
+    padding: 12px 0;
+    border-top: 3px solid var(--cnn-red);
+    position: sticky;
+    bottom: 0;
+    z-index: 999;
+}
+
+.trending-bar-bottom .trending-label {
+    background: var(--cnn-red);
+    color: white;
+    padding: 2px 10px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    margin-right: 15px;
+    letter-spacing: 1px;
+}
+
+/* CNN-Style Professional Footer */
+.site-footer-pro {
+    background: #111;
+    color: #eee;
+    padding: 60px 0 30px;
+    font-family: 'Inter', sans-serif;
+    border-top: 1px solid #333;
+}
+
+.footer-grid-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-column h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.footer-column h4::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--cnn-red);
+}
+
+.footer-link {
+    display: block;
+    color: #aaa;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color 0.2s, transform 0.2s;
+    font-size: 0.9rem;
+}
+
+.footer-link:hover {
+    color: var(--cnn-red);
+    transform: translateX(5px);
+}
+
+.footer-brand {
+    margin-bottom: 30px;
+}
+
+.footer-social-link {
+    width: 35px;
+    height: 35px;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    transition: background 0.3s;
+}
+
+.footer-social-link:hover {
+    background: var(--cnn-red);
+}
+
+/* Vertical Expert Insights Section */
+.expert-section {
+    padding: 60px 0;
+    background: #fdfdfd;
+}
+
+.expert-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.expert-list-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.expert-card-v {
+    display: flex;
+    gap: 30px;
+    background: #fff;
+    padding: 30px;
+    border-left: 5px solid var(--cnn-red);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s;
+}
+
+.expert-card-v:hover {
+    transform: scale(1.01);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.expert-img-container {
+    flex: 0 0 180px;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.expert-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.expert-info-v {
+    flex: 1;
+}
+
+.expert-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 5px;
+    color: #1a1a1a;
+}
+
+.expert-title {
+    color: var(--cnn-red);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+}
+
+.expert-bio {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.expert-article-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.expert-pub-link {
+    font-weight: 600;
+    color: #1a1a1a;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.expert-pub-link:hover {
+    text-decoration: underline;
+    color: var(--cnn-red);
+}
 
 :root {
     --cnn-red: #cc0000;

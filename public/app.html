@@ -16,6 +16,11 @@
     <link rel="apple-touch-icon" href="/images/dailynews-logo.svg">
     <meta property="og:image" content="/images/dailynews-logo.svg">
     <meta name="twitter:image" content="/images/dailynews-logo.svg">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://vercel.live https://www.youtube.com https://s.ytimg.com https://www.paypal.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: *; frame-src 'self' https://www.youtube.com https://www.paypal.com; connect-src 'self' https://newsdata.io https://api.nytimes.com https://v6.exchangerate-api.com https://api.rss2json.com https://firebase.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="stylesheet" href="/style.css">
     <script defer src="https://vercel.live/api/script.js"></script>
     <script type="application/ld+json">
@@ -42,6 +47,13 @@
         /*]]>/* */
     </script>
 
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
 </head>
 
 <body class="loading-state">
@@ -75,7 +87,6 @@
             <div class="container top-bar-inner">
                 <div class="top-bar-left">
                     <span class="current-date" id="current-date"></span>
-                    <a href="#" class="top-link">Trending</a>
                 </div>
                 <div class="top-bar-right">
                     <a href="/signin" class="top-link">Sign In</a>
@@ -128,15 +139,6 @@
             </div>
         </nav>
         </nav>
-        <!-- 4. Trending Bar -->
-        <div class="trending-bar" id="trending-bar">
-            <div class="container trending-inner">
-                <span class="trending-label">TRENDING</span>
-                <div class="trending-ticker" id="trending-ticker">
-                    <!-- Dynamic trending items -->
-                </div>
-            </div>
-        </div>
     </header>
 
     <!-- Main Content Area -->
@@ -158,8 +160,18 @@
         </div>
     </div>
 
+    <!-- 4. Trending Bar (Now at the bottom) -->
+    <div class="trending-bar-bottom" id="trending-bar">
+        <div class="container trending-inner">
+            <span class="trending-label">TRENDING</span>
+            <div class="trending-ticker" id="trending-ticker">
+                <!-- Dynamic trending items -->
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="main-footer">
+    <footer class="site-footer-pro">
         <div class="footer-grid-container px-4 py-16 mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <div>
