@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.5.7 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.8 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -1521,14 +1521,10 @@ async function renderSearchPage(params, searchParams) {
 function renderAdBanner() {
     return `
         <section class="ad-banner">
-            <div class="ad-content">
-                <div class="ad-text">
-                    <h3>BMW GROUP</h3>
-                    <p class="ad-subtitle">TOGETHER, WE'RE CREATING THE HISTORY OF TOMORROW</p>
-                    <p class="ad-description">BMW Group is one of the world's leading premium manufacturers</p>
-                </div>
-                <div class="ad-image">
-                    <img src="/images/Safaricom rolls out 5G across Kenya.jpg" alt="Advertisement" loading="lazy">
+            <div class="ad-container-inner">
+                <div class="ad-label">SPONSORED CONTENT</div>
+                <div class="ad-placeholder-text">
+                    <p>Advertisements help keep this service free.</p>
                 </div>
             </div>
         </section>
