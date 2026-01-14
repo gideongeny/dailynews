@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.5.4 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.5 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -1196,7 +1196,10 @@ async function renderHomePage() {
                                     </div>
                                 `).join('')}
                             </div>
+                            </div>
                         </div>
+
+                        ${renderAdBanner()}
 
                         ${data.articles && data.articles.length > 3 ? renderNewsGrid(data.articles.slice(3), 'LATEST STORIES') : ''}
                         ${renderColumnistsSection(data.articles || [])}
@@ -1250,6 +1253,9 @@ async function renderCategoryPage(params) {
                             <p class="category-description">Latest news and updates in ${category}</p>
                         </div>
                         ${data.articles && data.articles.length > 0 ? renderHeroSection(data.articles[0], data.articles.slice(1, 3)) : '<p>No articles available in this category</p>'}
+                        
+                        ${renderAdBanner()}
+                        
                         ${data.articles && data.articles.length > 3 ? renderNewsGrid(data.articles.slice(3), `${category.toUpperCase()} NEWS`) : ''}
                     </div>
                     ${renderSidebar(trending.articles || [])}
@@ -1402,7 +1408,10 @@ async function renderArticlePage(params) {
                                     </button>
                                 </div>
                             </div>
+                            </div>
                         </article>
+
+                        ${renderAdBanner()}
                         
                         <section class="related-articles">
                             <h2>Related Articles</h2>
