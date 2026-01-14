@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.5.8 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.9 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
