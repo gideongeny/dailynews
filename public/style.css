@@ -1685,8 +1685,20 @@ img {
 
     /* Header & Nav */
     .top-bar {
+        display: block;
+        /* Restore for mobile */
+        padding: 6px 0;
+    }
+
+    .top-bar-left {
         display: none;
-        /* Simplify for mobile, or stack if critical */
+        /* Hide date on mobile to save space */
+    }
+
+    .top-bar-right {
+        justify-content: center;
+        width: 100%;
+        gap: 15px;
     }
 
     body {

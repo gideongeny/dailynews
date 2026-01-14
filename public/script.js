@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.6.1 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.6.2 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -299,6 +299,7 @@ function updateAuthUI() {
         // Desktop
         topBarRight.innerHTML = `
             <span class="user-greeting">Hi, ${greetingName}</span>
+            <a href="/subscribe" class="top-link">Subscribe</a>
             <button onclick="AuthManager.signOut()" class="top-link logout-btn-inline">Sign Out</button>
             <div class="social-icons-small">
                 <a href="#" aria-label="Facebook">F</a>
@@ -312,6 +313,7 @@ function updateAuthUI() {
             mobileAuthSection.innerHTML = `
                 <div class="mobile-user-info">
                     <span class="mobile-greeting">Hi, ${greetingName}</span>
+                    <a href="/subscribe" class="mobile-auth-link mobile-subscribe-link">Join Premium</a>
                     <button onclick="AuthManager.signOut()" class="mobile-logout-btn">Sign Out &rarr;</button>
                 </div>
             `;
