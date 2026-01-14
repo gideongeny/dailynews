@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.4.1 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.4.2 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -2511,13 +2511,20 @@ function renderSignInPage() {
         </div>
     `;
 
-    const form = document.getElementById('signin-form');
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signin-email').value;
-        const password = document.getElementById('signin-password').value;
-        AuthManager.signIn(email, password);
-    });
+    // Attach event listener after DOM is ready
+    setTimeout(() => {
+        const form = document.getElementById('signin-form');
+        if (!form) {
+            console.error('Sign-in form not found!');
+            return;
+        }
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            AuthManager.signIn(email, password);
+        });
+    }, 100);
 
     updateActiveNav();
 }
@@ -2558,14 +2565,21 @@ function renderSignUpPage() {
         </div>
     `;
 
-    const form = document.getElementById('signup-form');
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('signup-name').value;
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        AuthManager.signUp(email, password, name);
-    });
+    // Attach event listener after DOM is ready
+    setTimeout(() => {
+        const form = document.getElementById('signup-form');
+        if (!form) {
+            console.error('Sign-up form not found!');
+            return;
+        }
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            AuthManager.signUp(email, password, name);
+        });
+    }, 100);
 
     updateActiveNav();
 }
