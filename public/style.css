@@ -3033,8 +3033,8 @@ img {
 .trending-bar-top .trending-ticker {
     display: flex;
     white-space: nowrap;
-    animation: ticker 60s linear infinite;
-    /* Adjusted speed for readability */
+    animation: ticker 120s linear infinite;
+    /* Slowed down for readability */
     padding-left: 20px;
 }
 
