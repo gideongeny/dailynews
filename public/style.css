@@ -1676,11 +1676,15 @@ img {
 
     .site-branding {
         flex: 1;
-        text-align: center;
+        text-align: left;
     }
 
     .site-title {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
+    }
+
+    .header-search-trigger {
+        margin-right: 15px;
     }
 
     .site-description {
