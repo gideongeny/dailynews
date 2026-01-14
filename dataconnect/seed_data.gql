@@ -1,0 +1,72 @@
+mutation CreateDemoData @auth(level: PUBLIC, insecureReason: "This operation is used to populate the database with example data.") @transaction {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-03T12:00:00Z",
+      displayName: "demouser1",
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      createdAt: "2024-04-03T12:00:00Z",
+      displayName: "demouser2",
+    }
+  ])
+  movie_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      createdAt: "2024-04-03T12:00:00Z",
+      title: "Inception",
+      year: 2010
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440003",
+      createdAt: "2024-04-03T12:00:00Z",
+      title: "The Matrix",
+      year: 1999
+    }
+  ])
+  movieList_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440004",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-03T12:00:00Z",
+      name: "My Favorite Movies",
+      isPublic: true,
+      updatedAt: "2024-04-03T12:00:00Z"
+    }
+  ])
+  movieListEntry_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440005",
+      movieId: "550e8400-e29b-41d4-a716-446655440002",
+      movieListId: "550e8400-e29b-41d4-a716-446655440004",
+      position: 1
+    },
+     {
+      id: "550e8400-e29b-41d4-a716-446655440006",
+      movieId: "550e8400-e29b-41d4-a716-446655440003",
+      movieListId: "550e8400-e29b-41d4-a716-446655440004",
+      position: 2
+    }
+  ])
+   watch_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440007",
+      movieId: "550e8400-e29b-41d4-a716-446655440002",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      createdAt: "2024-04-03T12:00:00Z",
+      watchDate: "2024-04-03"
+    }
+  ])
+     review_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440008",
+      movieId: "550e8400-e29b-41d4-a716-446655440002",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      watchId: "550e8400-e29b-41d4-a716-446655440007",
+      createdAt: "2024-04-03T12:00:00Z",
+      isPublic: true,
+      rating: 5
+    }
+  ])
+}

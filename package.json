@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2"
   },
@@ -11,7 +12,12 @@
     "start": "node proxy.mjs",
     "dev": "node proxy.mjs"
   },
-  "keywords": ["news", "website", "express", "nodejs"],
+  "keywords": [
+    "news",
+    "website",
+    "express",
+    "nodejs"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Modern news website with real-time updates"

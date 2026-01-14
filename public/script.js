@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.4.0 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.4.1 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -143,12 +143,12 @@ function generateArticleId(article) {
 // Firebase & Auth Manager
 // ===========================
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDhWpp6pi_HbY4KyZ-6Doy_QnBiojHugs4",
+    authDomain: "dailynews-app-2026.firebaseapp.com",
+    projectId: "dailynews-app-2026",
+    storageBucket: "dailynews-app-2026.firebasestorage.app",
+    messagingSenderId: "896667819348",
+    appId: "1:896667819348:web:f292db85f99237b2c33cc1"
 };
 
 // Initialize Firebase
