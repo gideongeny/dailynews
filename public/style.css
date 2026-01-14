@@ -2721,19 +2721,23 @@ img {
    =========================== */
 .trending-bar-top {
     background: #000;
+    color: #fff;
+    padding: 2px 0;
     border-bottom: 2px solid var(--cnn-red);
-    padding: 10px 0;
-    font-size: 0.85rem;
     position: relative;
-    overflow: hidden;
     z-index: 100;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    /* THE MASTER CLIP: Ensures nothing leaves the bar boundaries */
 }
 
 .trending-bar-top .trending-inner {
     display: flex;
     align-items: center;
-    overflow: hidden;
-    /* Clips all children (ticker items) at the container edges */
+    position: relative;
+    /* Removed overflow:hidden here to allow the mask to extend left */
 }
 
 .trending-bar-top .trending-label {
@@ -2741,20 +2745,39 @@ img {
     color: #fff;
     font-weight: 900;
     padding: 6px 16px;
-    z-index: 100;
-    /* Stays on top of the ticker */
+    z-index: 110;
+    /* Above ticker and its mask */
     box-shadow: 20px 0 30px rgba(0, 0, 0, 1);
     letter-spacing: 1.5px;
+    height: 100%;
     display: flex;
     align-items: center;
     position: absolute;
     left: 0;
 }
 
+/* THE SWALLOW MASK: A massive black shield that hides everything to the left of the label */
+.trending-bar-top .trending-label::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: -10px;
+    bottom: -10px;
+    width: 200vw;
+    /* Covers the entire left side of the screen */
+    background: #000;
+    z-index: 105;
+    /* Above ticker, but attached to label */
+    pointer-events: none;
+}
+
 .trending-bar-top .trending-ticker-container {
     width: 100%;
     display: flex;
     align-items: center;
+    position: relative;
+    z-index: 50;
+    /* Below label and mask */
 }
 
 .trending-bar-top .trending-ticker {
