@@ -640,22 +640,97 @@ img {
 }
 
 .ad-banner {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    padding: 40px;
-    text-align: center;
-    border: 2px solid #e8e8e8;
-    margin-top: 20px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin: 40px 0;
+    padding: 20px;
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
-.ad-content h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    font-weight: 900;
+.ad-banner::before {
+    content: "ADVERTISEMENT";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #bbb;
+    letter-spacing: 1px;
+}
+
+.ad-content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.ad-text {
+    flex: 1;
+    text-align: left;
+}
+
+.ad-text h3 {
+    margin: 0 0 8px 0;
     color: #1a1a1a;
-    margin: 0;
-    letter-spacing: 2px;
+    font-size: 1.25rem;
+    font-weight: 900;
+    font-family: inherit;
+    letter-spacing: normal;
+}
+
+.ad-subtitle {
+    display: block;
+    margin-bottom: 15px;
+    color: #dc143c;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.ad-description {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.ad-image {
+    flex: 0 0 350px;
+    height: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.ad-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s;
+}
+
+.ad-banner:hover .ad-image img {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .ad-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .ad-image {
+        flex: 0 0 auto;
+        width: 100%;
+        height: 180px;
+    }
+
+    .ad-banner {
+        margin: 25px 5px;
+        padding: 15px;
+    }
 }
 
 /* ==== Columnists Section ==== */
