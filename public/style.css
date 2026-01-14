@@ -2744,15 +2744,30 @@ img {
     padding: 6px 16px;
     position: absolute;
     left: 0;
-    z-index: 20;
-    box-shadow: 25px 0 25px rgba(0, 0, 0, 0.9);
-    /* Stronger shadow for "swallow" effect */
+    z-index: 30;
+    /* Higher to stay above everything */
+    box-shadow: 20px 0 30px rgba(0, 0, 0, 1);
+    /* Dense shadow for "swallowing" look */
     letter-spacing: 1.5px;
     margin-right: 0;
     border-right: none;
     height: 100%;
     display: flex;
     align-items: center;
+}
+
+/* Hardened Mask: Ensures text is invisible to the left of the label on wide screens */
+.trending-bar-top .trending-label::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 100%;
+    width: 200vw;
+    /* Massive mask to the left */
+    background: #000;
+    /* Matches the trending bar background */
+    z-index: -1;
 }
 
 .trending-bar-top .trending-ticker {
