@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.3.0 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.3.1 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -2715,6 +2715,8 @@ window.renderBillingStep = function (planName, amount) {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
+    const planId = planName.toLowerCase().replace(/\s+/g, '-');
+
     mainContent.innerHTML = `
         <div class="billing-premium-wrapper">
             <canvas id="pricing-particles"></canvas>
@@ -2773,7 +2775,7 @@ window.renderBillingStep = function (planName, amount) {
 
                         <div id="payment-section-premium">
                             <p class="payment-note">Complete your purchase securely via PayPal</p>
-                            <div id="paypal-button-container-${planName.toLowerCase()}"></div>
+                            <div id="paypal-button-container-${planId}"></div>
                         </div>
                     </form>
                 </div>
@@ -2809,7 +2811,7 @@ window.renderBillingStep = function (planName, amount) {
             }).render(`#${id}`);
         };
 
-        initButtons(`paypal-button-container-${planName.toLowerCase()}`, amount.toString(), `DailyNews ${planName} Subscription`);
+        initButtons(`paypal-button-container-${planId}`, amount.toString(), `DailyNews ${planName} Subscription`);
     }
 };
 
