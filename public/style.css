@@ -2743,17 +2743,21 @@ img {
     position: absolute;
     left: 0;
     z-index: 20;
-    box-shadow: 15px 0 25px rgba(0, 0, 0, 0.6);
+    box-shadow: 25px 0 25px rgba(0, 0, 0, 0.9);
+    /* Stronger shadow for "swallow" effect */
     letter-spacing: 1.5px;
     margin-right: 0;
     border-right: none;
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
 
 .trending-bar-top .trending-ticker {
-    padding-left: 120px;
-    animation: ticker 120s linear infinite;
     display: flex;
     white-space: nowrap;
+    animation: ticker 120s linear infinite;
+    will-change: transform;
 }
 
 .trending-bar-top .ticker-item {
@@ -3343,4 +3347,49 @@ input:checked+.premium-slider:before {
     height: 100%;
     pointer-events: none;
     opacity: 0.4;
+}
+
+/* Ticker Animation */
+@keyframes ticker {
+    0% {
+        transform: translateX(100vw);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Professional Search Icon */
+.search-icon-svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    fill: none;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.search-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-toggle:hover {
+    background: var(--cnn-red);
+    border-color: var(--cnn-red);
+    transform: scale(1.1);
+}
+
+.search-toggle:hover .search-icon-svg {
+    transform: rotate(5deg);
 }
