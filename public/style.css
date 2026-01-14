@@ -2734,6 +2734,7 @@ img {
     align-items: stretch;
     /* Ensure label and ticker are same height */
     position: relative;
+    /* Do not use overflow:hidden here or it will clip the label's left mask */
 }
 
 .trending-bar-top .trending-label {
@@ -2741,8 +2742,9 @@ img {
     color: #fff;
     font-weight: 900;
     padding: 6px 16px;
-    z-index: 10;
-    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    /* Above ticker and mask */
+    box-shadow: 15px 0 25px rgba(0, 0, 0, 0.9);
     letter-spacing: 1.5px;
     height: 100%;
     display: flex;
@@ -2751,13 +2753,31 @@ img {
     position: relative;
 }
 
-/* Dedicated viewport for the ticker to ensure absolute clipping at the label edge */
+/* Absolute Mask: Stretches from the red label to the far left of the bar/screen */
+.trending-bar-top .trending-label::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: -50px;
+    /* Oversize vertically to be safe */
+    bottom: -50px;
+    width: 100vw;
+    /* cover all possible space to the left */
+    background: #000;
+    z-index: 45;
+    /* Just below red part, but above ticker */
+    pointer-events: none;
+}
+
+/* Dedicated viewport for the ticker to ensure clipping at the container edge as well */
 .trending-bar-top .trending-ticker-container {
     flex-grow: 1;
     overflow: hidden;
     position: relative;
     display: flex;
     align-items: center;
+    z-index: 10;
+    /* Below mask */
 }
 
 .trending-bar-top .trending-ticker {
