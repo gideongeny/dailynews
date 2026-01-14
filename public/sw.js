@@ -1,5 +1,6 @@
 // Monetag Service Worker Configuration
 self.options = {
+    "site": "dailynews-app-2026",
     "domain": "3nbf4.com",
     "zoneId": 10460903
 };
