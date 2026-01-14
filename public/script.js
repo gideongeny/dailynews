@@ -292,6 +292,11 @@ const CATEGORY_KEYWORDS = {
     kenya: ['kenya', 'nairobi', 'mombasa', 'ruto', 'odinga', 'east africa', 'ksm', 'kenyan', 'gachagua', 'kanu', 'jubilee', 'azimio', 'udm'],
     africa: ['africa', 'nigeria', 'south africa', 'ethiopia', 'egypt', 'ghana', 'senegal', 'african', 'african union', 'maghreb', 'sahel'],
     asia: ['asia', 'china', 'india', 'japan', 'south korea', 'vietnam', 'thailand', 'asian', 'asean', 'beijing', 'tokyo', 'delhi'],
+    oceania: ['australia', 'new zealand', 'oceania', 'pacific', 'fiji', 'melanesia', 'micronesia', 'polynesia', 'sydney', 'melbourne', 'auckland'],
+    europe: ['europe', 'uk', 'france', 'germany', 'italy', 'spain', 'european', 'brussels', 'london', 'paris', 'berlin', 'eu'],
+    asean: ['asean', 'southeast asia', 'singapore', 'malaysia', 'indonesia', 'vietnam', 'thailand', 'philippines', 'jakarta', 'bangkok', 'manila'],
+    'north-america': ['usa', 'canada', 'mexico', 'america', 'washington', 'new york', 'ottawa', 'toronto'],
+    'middle-east': ['middle east', 'israel', 'palestine', 'saudi arabia', 'iran', 'iraq', 'syria', 'dubai', 'qatar', 'beirut', 'jerusalem'],
     'south-america': ['brazil', 'argentina', 'colombia', 'chile', 'peru', 'venezuela', 'latin america', 'amazon', 'andes']
 };
 
@@ -668,7 +673,7 @@ async function fetchAPI(endpoint) {
             if (results[1] && results[1].results) {
                 const nyTimesArticles = results[1].results.map(a => {
                     const multimedia = a.multimedia || [];
-                    let imageUrl = '/images/World Bank.jpg';
+                    let imageUrl = '/images/no-image.png';
                     if (multimedia.length > 0) imageUrl = multimedia[0].url;
 
                     const baseArticle = {
@@ -696,7 +701,7 @@ async function fetchAPI(endpoint) {
                         description: a.description || 'No description available',
                         content: a.content || '',
                         url: a.url,
-                        image: a.image_url || '/images/World Bank.jpg',
+                        image: a.image_url || '/images/no-image.png',
                         publishedAt: a.published_at,
                         source: a.source?.toUpperCase() || 'THENEWSAPI',
                         category: a.categories?.[0] || 'general',
@@ -718,10 +723,11 @@ async function fetchAPI(endpoint) {
                             description: cleanDescription(a.description || a.content) || 'Read the full story',
                             content: cleanDescription(a.content || a.description) || '',
                             url: a.link,
-                            image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                            image: a.enclosure?.link || a.thumbnail || '/images/no-image.png',
                             publishedAt: a.pubDate || new Date().toISOString(),
                             source: sourceName.toUpperCase(),
-                            category: endpoint.includes('category/') ? endpoint.split('category/')[1].split('?')[0] : 'world',
+                            category: endpoint.includes('category/') ? endpoint.split('category/')[1].split('?')[0] :
+                                endpoint.includes('region/') ? endpoint.split('region/')[1].split('?')[0] : 'world',
                             author: sourceName
                         };
                         baseArticle.id = generateArticleId(baseArticle);
@@ -740,10 +746,11 @@ async function fetchAPI(endpoint) {
             // Deduplicate articles
             aggregatedArticles = deduplicateArticles(aggregatedArticles);
 
-            // Apply Category Filtering if relevant
-            if (endpoint.includes('category/')) {
-                const category = endpoint.split('category/')[1].split('?')[0];
-                console.log(`🎯 [TRACE] Applying category filtering for: ${category}`);
+            // Apply Strict Filtering for Categories and Regions
+            if (endpoint.includes('category/') || endpoint.includes('region/')) {
+                const parts = endpoint.split('/');
+                const category = parts[parts.length - 1].split('?')[0];
+                console.log(`🎯 [TRACE] Applying strict filtering for: ${category}`);
                 aggregatedArticles = filterByCategory(aggregatedArticles, category);
             }
 
@@ -800,11 +807,11 @@ function getMockArticles(count) {
         description: 'This is a fallback description shown because the backend API is currently unavailable. Please check your Firebase billing or proxy settings.',
         content: 'Full content unavailable in fallback mode.',
         url: '#',
-        image: '/images/World Bank.jpg',
+        image: '/images/no-image.png',
         publishedAt: new Date().toISOString(),
-        source: 'Fallback System',
+        source: 'DailyNews Archive',
         category: 'general',
-        author: 'System'
+        author: 'Staff'
     }));
 }
 
@@ -1227,7 +1234,7 @@ async function renderArticlePage(params) {
                             </div>
                             
                             <div class="article-image-container">
-                                <img src="${cachedArticle.image}" alt="${cachedArticle.title}" onerror="this.src='/images/World Bank.jpg'">
+                                <img src="${cachedArticle.image}" alt="${cachedArticle.title}" onerror="this.src='/images/no-image.png'">
                             </div>
                             
                             <div class="article-content">
@@ -1402,7 +1409,7 @@ function renderHeroSection(mainArticle, secondaryArticles = []) {
         <section class="hero-section">
                     <article class="hero-article" data-article-id="${mainArticle.id}" style="cursor: pointer;">
                         <div class="hero-image">
-                            <img src="${mainArticle.image}" alt="${mainArticle.title}" loading="eager" onerror="this.src='images/World Bank.jpg'">
+                            <img src="${mainArticle.image}" alt="${mainArticle.title}" loading="eager" onerror="this.src='/images/no-image.png'">
                             ${mainArticle.type === 'video' ? '<div class="video-badge-hero">▶ LIVE VIDEO</div>' : ''}
                             <div class="hero-overlay">
                                 <span class="hero-category">${(mainArticle.category || 'GENERAL').toUpperCase()}</span>
@@ -1420,7 +1427,7 @@ function renderHeroSection(mainArticle, secondaryArticles = []) {
                 <div class="secondary-stories">
                     ${secondaryArticles.map(article => `
                         <article class="story-card story-card-small">
-                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/no-image.png'">
                             <div class="story-overlay">
                                 <span class="story-category">${article.category.toUpperCase()}</span>
                                 <h3 class="story-title">${article.title}</h3>
@@ -1445,7 +1452,7 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
                 ${articles.map(article => `
                     <article class="news-card" data-article-id="${article.id}" style="cursor: pointer;">
                         <div class="news-image">
-                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='images/World Bank.jpg'">
+                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/no-image.png'">
                             ${article.type === 'video' ? '<div class="video-badge">▶ VIDEO</div>' : ''}
                         </div>
                         <div class="news-content">
@@ -1885,18 +1892,55 @@ document.addEventListener('submit', async (e) => {
 // Search Functionality
 // ===========================
 function initSearch() {
-    const header = document.querySelector('.header-top');
-    if (!header.querySelector('.search-bar')) {
-        const searchBar = document.createElement('div');
-        searchBar.className = 'search-bar';
-        searchBar.innerHTML = `
-            <form class="search-form">
-                <input type="search" placeholder="Search news..." name="q">
-                <button type="submit">🔍</button>
-            </form>
-        `;
-        header.appendChild(searchBar);
+    const brandingInner = document.querySelector('.branding-area .branding-inner');
+    const trigger = document.querySelector('.search-toggle');
+
+    if (!brandingInner) return;
+
+    // Remove existing if any
+    const existing = document.querySelector('.header-search-bar');
+    if (existing) existing.remove();
+
+    const searchBar = document.createElement('div');
+    searchBar.className = 'header-search-bar';
+    searchBar.style.display = 'none'; // Hidden by default
+    searchBar.innerHTML = `
+        <form class="search-form">
+            <input type="search" id="header-search-input" placeholder="Search news..." name="q" autocomplete="off">
+            <button type="submit">🔍</button>
+        </form>
+    `;
+    brandingInner.appendChild(searchBar);
+
+    if (trigger) {
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = searchBar.style.display === 'none';
+            searchBar.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                const input = searchBar.querySelector('input');
+                if (input) input.focus();
+            }
+        });
     }
+
+    // Handle form submission
+    searchBar.querySelector('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = searchBar.querySelector('input').value;
+        if (query) {
+            router.navigate(`/search?q=${encodeURIComponent(query)}`);
+            searchBar.style.display = 'none';
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (!searchBar.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) {
+            searchBar.style.display = 'none';
+        }
+    });
+}
 }
 
 document.addEventListener('submit', (e) => {
@@ -1962,6 +2006,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Initializations
     initReadingProgress();
+    initSearch(); // Initialize unified search logic
 
     // Global Trending Bar Initialization
     fetchAPI('category/general').then(data => {

@@ -287,18 +287,6 @@
             });
         }
     </script>
-    <script>
-        // Search form handler
-        const searchForm = document.getElementById('search-form');
-        if (searchForm) {
-            searchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const query = document.getElementById('search-input').value;
-                if (query && globalThis.router) {
-                    globalThis.router.navigate(`/search?q=${encodeURIComponent(query)}`);
-                }
-            });
-        }
     </script>
 </body>
 
