@@ -2731,10 +2731,9 @@ img {
 
 .trending-bar-top .trending-inner {
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    /* Ensure label and ticker are same height */
     position: relative;
-    overflow: hidden;
-    /* Clip items passing the left/right container edges */
 }
 
 .trending-bar-top .trending-label {
@@ -2742,32 +2741,23 @@ img {
     color: #fff;
     font-weight: 900;
     padding: 6px 16px;
-    position: absolute;
-    left: 0;
-    z-index: 100;
-    /* Extremely high to stay on top */
-    box-shadow: 20px 0 30px rgba(0, 0, 0, 1);
-    /* Dense shadow for "swallowing" look */
+    z-index: 10;
+    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.5);
     letter-spacing: 1.5px;
-    margin-right: 0;
-    border-right: none;
     height: 100%;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    position: relative;
 }
 
-/* Hardened Mask: Ensures text is invisible to the left of the label on wide screens */
-.trending-bar-top .trending-label::before {
-    content: "";
-    position: absolute;
-    right: 100%;
-    top: 0;
-    height: 100%;
-    width: 200vw;
-    /* Massive mask to the left */
-    background: #000;
-    /* Matches the trending bar background */
-    z-index: -1;
+/* Dedicated viewport for the ticker to ensure absolute clipping at the label edge */
+.trending-bar-top .trending-ticker-container {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .trending-bar-top .trending-ticker {
@@ -2776,8 +2766,6 @@ img {
     animation: ticker 120s linear infinite;
     will-change: transform;
     position: relative;
-    z-index: 10;
-    /* Stay below the label and its mask */
 }
 
 .trending-bar-top .ticker-item {
