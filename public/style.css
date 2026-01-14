@@ -2737,7 +2737,8 @@ img {
     display: flex;
     align-items: center;
     position: relative;
-    /* Removed overflow:hidden here to allow the mask to extend left */
+    overflow: hidden;
+    /* Clips everything at the container's main boundaries */
 }
 
 .trending-bar-top .trending-label {
@@ -2745,39 +2746,26 @@ img {
     color: #fff;
     font-weight: 900;
     padding: 6px 16px;
-    z-index: 110;
-    /* Above ticker and its mask */
-    box-shadow: 20px 0 30px rgba(0, 0, 0, 1);
+    z-index: 100;
+    box-shadow: 10px 0 20px rgba(0, 0, 0, 0.5);
     letter-spacing: 1.5px;
     height: 100%;
     display: flex;
     align-items: center;
-    position: absolute;
-    left: 0;
+    flex-shrink: 0;
+    position: relative;
+    /* Back to static flex-flow positioning */
 }
 
-/* THE SWALLOW MASK: A massive black shield that hides everything to the left of the label */
-.trending-bar-top .trending-label::before {
-    content: "";
-    position: absolute;
-    right: 100%;
-    top: -10px;
-    bottom: -10px;
-    width: 200vw;
-    /* Covers the entire left side of the screen */
-    background: #000;
-    z-index: 105;
-    /* Above ticker, but attached to label */
-    pointer-events: none;
-}
+/* Redundant mask removed - Flexbox + overflow:hidden is more reliable */
 
 .trending-bar-top .trending-ticker-container {
-    width: 100%;
+    flex-grow: 1;
+    overflow: hidden;
+    /* Essential: This clips the ticker items the moment they move past the label */
+    position: relative;
     display: flex;
     align-items: center;
-    position: relative;
-    z-index: 50;
-    /* Below label and mask */
 }
 
 .trending-bar-top .trending-ticker {
