@@ -10,13 +10,13 @@ console.log('✅ LOADING SCRIPT v1.1.1 [NEWEST]');
 // Category-specific placeholder images
 const CATEGORY_PLACEHOLDERS = {
     politics: '/images/Kenya Parliament.jpg',
-    business: '/images/World Bank.jpg',
+    business: '/images/no-image.png',
     technology: '/images/Safaricom rolls out 5G across Kenya.jpg',
     sports: '/images/Olunga sets national record in 100 m.jpg',
     culture: '/images/Maasai Olympics empower women.webp',
-    health: '/images/World Bank.jpg',
-    general: '/images/World Bank.jpg',
-    world: '/images/World Bank.jpg',
+    health: '/images/no-image.png',
+    general: '/images/no-image.png',
+    world: '/images/no-image.png',
     entertainment: '/images/Kenyans ring in New Year with nyama choma.jpg'
 };
 
@@ -603,21 +603,24 @@ async function fetchAPI(endpoint) {
                         'https://www.abc.net.au/news/feed/51120/rss.xml',
                         'https://www.theguardian.com/australia-news/rss',
                         'https://www.smh.com.au/rss/feed.xml',
-                        'http://feeds.bbci.co.uk/news/world/australia/rss.xml'
+                        'http://feeds.bbci.co.uk/news/world/australia/rss.xml',
+                        'https://www.rnz.co.nz/rss/news.xml'
                     ];
                 } else if (category === 'middle-east') {
                     rssFeedsToFetch = [
                         'https://www.aljazeera.com/xml/rss/all.xml',
                         'http://feeds.bbci.co.uk/news/world/middle_east/rss.xml',
                         'https://www.theguardian.com/world/middleeast/rss',
-                        'https://www.reuters.com/arc/outboundfeeds/reuters/world/middle-east/?outputType=xml'
+                        'https://www.reuters.com/arc/outboundfeeds/reuters/world/middle-east/?outputType=xml',
+                        'https://www.jpost.com/rss/rss.aspx?sectionid=1'
                     ];
                 } else if (category === 'asean' || category === 'southeast-asia') {
                     rssFeedsToFetch = [
                         'https://www.channelnewsasia.com/rssfeeds/8395986',
                         'https://www.scmp.com/rss/2/feed.xml',
                         'https://www.thestar.com.my/rss/news/nation',
-                        'https://www.bangkokpost.com/rss/data/topstories.xml'
+                        'https://www.bangkokpost.com/rss/data/topstories.xml',
+                        'https://www.straitstimes.com/news/asia/rss.xml'
                     ];
                 }
             }
@@ -649,7 +652,7 @@ async function fetchAPI(endpoint) {
                         description: a.description || 'No description available',
                         content: a.content || a.description || '',
                         url: a.link,
-                        image: a.image_url || '/images/World Bank.jpg',
+                        image: a.image_url || '/images/no-image.png',
                         publishedAt: a.pubDate || new Date().toISOString(),
                         source: a.source_id?.toUpperCase() || 'NEWSDATA',
                         category: a.category?.[0] || 'general',
@@ -1562,30 +1565,29 @@ function renderColumnistsSection(articles = []) {
 }
 
 function renderSidebar(trendingArticles = []) {
-    // Filter articles by time period
     const now = new Date();
-    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const lastMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const cachedArticles = Object.values(JSON.parse(localStorage.getItem('news_cache') || '{}'));
+    const allAvailable = [...trendingArticles, ...cachedArticles];
+    const seen = new Set();
+    const articles = allAvailable.filter(a => {
+        if (!a.id || seen.has(a.id)) return false;
+        seen.add(a.id);
+        return true;
+    });
 
-    const filterByDate = (articles, daysAgo) => {
-        const cutoff = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-        return articles.filter(article => {
+    const filterByDateRange = (articleList, daysAgoStart, daysAgoEnd) => {
+        const start = new Date(now.getTime() - daysAgoStart * 24 * 60 * 60 * 1000);
+        const end = daysAgoEnd ? new Date(now.getTime() - daysAgoEnd * 24 * 60 * 60 * 1000) : now;
+        return articleList.filter(article => {
             const pubDate = new Date(article.publishedAt);
-            return pubDate >= cutoff;
+            return pubDate >= start && (!daysAgoEnd || pubDate < end);
         });
     };
 
-    const thisWeekArticles = filterByDate(trendingArticles, 7);
-    const lastWeekArticles = filterByDate(trendingArticles, 14).filter(a => {
-        const pubDate = new Date(a.publishedAt);
-        return pubDate >= lastWeek && pubDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    });
-    const lastMonthArticles = filterByDate(trendingArticles, 30).filter(a => {
-        const pubDate = new Date(a.publishedAt);
-        return pubDate >= lastMonth && pubDate < lastWeek;
-    });
+    const thisWeekArticles = filterByDateRange(articles, 7).slice(0, 10);
+    const lastWeekArticles = filterByDateRange(articles, 14, 7).slice(0, 10);
+    const lastMonthArticles = filterByDateRange(articles, 30, 14).slice(0, 10);
 
-    // Store articles globally to avoid breaking HTML with JSON.stringify in attributes
     window.__SIDEBAR_DATA__ = {
         'this-week': thisWeekArticles,
         'last-week': lastWeekArticles,
@@ -1604,7 +1606,7 @@ function renderSidebar(trendingArticles = []) {
                 <div class="sidebar-articles" id="sidebar-articles-container">
                     ${thisWeekArticles.length > 0 ? thisWeekArticles.map(article => `
                         <article class="sidebar-article" data-article-id="${article.id}" style="cursor: pointer;">
-                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/no-image.png'">
                             <div class="sidebar-article-content">
                                 <h4>${article.title}</h4>
                                 <div class="sidebar-meta">
@@ -2578,7 +2580,21 @@ async function renderSubscribePage() {
 
     function updateCards() {
         const isYearly = toggle.checked;
-        container.innerHTML = plans.map((plan, i) => `
+        container.innerHTML = plans.map((plan, i) => {
+            const displayPrice = isYearly ? plan.yearly : plan.monthly;
+            const isAnnualVIP = plan.id === 'annual';
+            const features = plan.features.map(f => {
+                const isPremiumFeature = f.includes('Expert') || f.includes('Unlimited') || f.includes('Offline');
+                const isVIPFeature = f.includes('VIP') || f.includes('Investigations') || f.includes('Multi-device');
+
+                let lockIcon = '';
+                if (plan.id === 'starter' && (isPremiumFeature || isVIPFeature)) lockIcon = '🔒 ';
+                if (plan.id === 'premium' && isVIPFeature) lockIcon = '🔒 ';
+
+                return `<li><span class="check-icon">✓</span> ${lockIcon}${f}</li>`;
+            }).join('');
+
+            return `
             <div class="pricing-card card-animate ${plan.popular ? 'popular' : ''}" style="animation-delay: ${0.25 + i * 0.1}s">
                 ${plan.popular ? '<div class="popular-badge">MOST POPULAR</div>' : ''}
                 <div class="card-head">
@@ -2586,7 +2602,7 @@ async function renderSubscribePage() {
                     <p class="card-desc">${plan.description}</p>
                     <div class="card-price">
                         <span class="currency">$</span>
-                        <span class="amount">${isYearly ? plan.yearly : plan.monthly}</span>
+                        <span class="amount">${displayPrice}</span>
                         <span class="period">/${isYearly ? 'mo*' : 'mo'}</span>
                     </div>
                     <p class="billing-note">${isYearly ? `Billed $${(plan.yearly * 12).toFixed(2)} annually` : `Billed monthly`}</p>
@@ -2594,7 +2610,7 @@ async function renderSubscribePage() {
                 
                 <div class="card-body">
                     <ul class="pricing-features">
-                        ${plan.features.map(f => `<li><span class="check-icon">✓</span> ${f}</li>`).join('')}
+                        ${features}
                     </ul>
                 </div>
 
@@ -2607,7 +2623,8 @@ async function renderSubscribePage() {
                     </button>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     toggle.addEventListener('change', updateCards);

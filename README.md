@@ -1,12 +1,19 @@
-# DAILYNEWS - News Website
+# DAILYNEWS - Premium News Platform
 
-A beautiful, modern news website that shows the latest news from around the world.
+![DailyNews Homepage](file:///c:/Users/mukht/Desktop/vs%20code%20projects/newsweek-main/public/images/screenshot.png)
 
-## What You Need
+## Premium Experience
+DAILYNEWS v1.1.1 is a high-performance news aggregator with a world-class design:
+- **Premium Subscription**: Glassmorphism pricing cards, animated particles, and dynamic logic.
+- **Global Trending Bar**: Real-time news ticker with "swallow" effect labels.
+- **Regional Content**: Dedicated feeds for Africa, Asia, Europe, Middle East, Oceania, and ASEAN.
+- **Interactive Sidebar**: Historical news tracking (This Week, Last Week, Last Month).
+- **Responsive Media**: Integrated video badges and live YouTube news channels.
 
+## Requirements
 Before starting, make sure you have:
-- **Node.js** installed on your computer ([Download here](https://nodejs.org/) - just click the download button)
-- An internet connection
+- **Node.js** installed ([Download](https://nodejs.org/))
+- **Firebase CLI** (for hosting/functions)
 
 ## How to Get Started (3 Simple Steps)
 
