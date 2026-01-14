@@ -68,7 +68,7 @@ async function fetchFromNewsData(params) {
             description: article.description || article.content || 'No description available',
             content: article.content || article.description || '',
             url: article.link,
-            image: article.image_url || '/images/World Bank.jpg',
+            image: article.image_url || '/images/no-image.png',
             publishedAt: article.pubDate,
             source: article.source_id || 'Unknown',
             category: article.category?.[0] || params.category || 'general',
@@ -102,7 +102,7 @@ async function fetchFromTheNewsAPI(params) {
             description: article.description || 'No description available',
             content: article.description || '',
             url: article.url,
-            image: article.image_url || '/images/World Bank.jpg',
+            image: article.image_url || '/images/no-image.png',
             publishedAt: article.published_at,
             source: article.source || 'Unknown',
             category: params.category || 'general',
@@ -226,7 +226,7 @@ function getMockNews(category = 'general', count = 12) {
             description: 'Major infrastructure projects receive financial backing from international institutions.',
             content: 'The World Bank has approved significant funding for infrastructure development...',
             url: '#',
-            image: '/images/World Bank.jpg',
+            image: '/images/no-image.png',
             publishedAt: new Date(Date.now() - 28800000).toISOString(),
             source: 'Economic Times',
             category: 'economy',
@@ -265,7 +265,7 @@ function getMockNews(category = 'general', count = 12) {
             description: 'New mobile health clinics bring medical services to remote communities.',
             content: 'A groundbreaking healthcare initiative is bringing medical services to rural areas...',
             url: '#',
-            image: '/images/World Bank.jpg',
+            image: '/images/no-image.png',
             publishedAt: new Date(Date.now() - 39600000).toISOString(),
             source: 'Health Weekly',
             category: 'health',
@@ -303,7 +303,7 @@ async function fetchFromMediastack(params) {
             description: article.description || 'No description available',
             content: article.description || '', // Mediastack often doesn't give full content
             url: article.url,
-            image: article.image || '/images/World Bank.jpg',
+            image: article.image || '/images/no-image.png',
             publishedAt: article.published_at,
             source: article.source || 'Mediastack',
             category: article.category || params.category || 'general',
@@ -347,7 +347,7 @@ async function fetchFromNYTimes(params) {
     if (articles.length > 0) {
         return articles.map(article => {
             const multimedia = article.multimedia || article.media;
-            let imageUrl = '/images/World Bank.jpg';
+            let imageUrl = '/images/no-image.png';
 
             if (multimedia && multimedia.length > 0) {
                 // NYTimes Search API returns relative paths sometimes, Top Stories returns absolute

@@ -2174,7 +2174,7 @@ function renderRelatedArticles(category) {
         <div class="related-grid">
             ${relatedArticles.map(article => `
                 <article class="related-card" onclick="router.navigate('/article/${article.id}')">
-                    <img src="${article.image}" alt="${article.title}" onerror="this.src='/images/World Bank.jpg'">
+                    <img src="${article.image}" alt="${article.title}" onerror="this.src='/images/no-image.png'">
                     <div class="related-content">
                         <h3>${article.title}</h3>
                         <p>${formatDate(article.publishedAt)}</p>
@@ -2225,7 +2225,7 @@ async function loadMoreArticles(category) {
                     card.className = 'news-card';
                     card.innerHTML = `
                         <div class="news-image" onclick="router.navigate('/article/${article.id}')">
-                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/no-image.png'">
                             ${article.type === 'video' ? '<div class="video-badge">▶ VIDEO</div>' : ''}
                         </div>
                         <div class="news-content">
@@ -2265,7 +2265,7 @@ function createArticleCard(article) {
     card.className = 'news-card';
     card.innerHTML = `
         <div class="news-image">
-            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+            <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/no-image.png'">
         </div>
         <div class="news-content">
             <span class="news-category">${article.category.toUpperCase()}</span>
@@ -2396,7 +2396,7 @@ function attachTabHandlers() {
             if (articles.length > 0) {
                 container.innerHTML = articles.map(article => `
                     <article class="sidebar-article" data-article-id="${article.id}" style="cursor: pointer;">
-                        <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/World Bank.jpg'">
+                        <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='/images/no-image.png'">
                         <div class="sidebar-article-content">
                             <h4>${article.title}</h4>
                             <div class="sidebar-meta">
