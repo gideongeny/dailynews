@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.5.6 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.7 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -609,9 +609,10 @@ async function fetchAPI(endpoint) {
             if (endpoint.includes('category/')) {
                 const category = endpoint.split('category/')[1].split('?')[0];
                 if (category === 'kenya') {
-                    newsDataUrl += `&country=ke&q=kenya`;
-                } else if (category === 'africa') {
-                    newsDataUrl += `&q=africa`;
+                    // NewsData supports country code, but q=kenya is safer for broad results
+                    newsDataUrl += `&country=ke`;
+                } else if (category === 'africa' || category === 'world') {
+                    newsDataUrl += `&q=${category}`;
                 } else {
                     newsDataUrl += `&category=${category}`;
                 }
@@ -912,6 +913,7 @@ async function fetchAPI(endpoint) {
         } catch (fallbackError) {
             hideLoading();
             console.log('🧱 [TRACE] Fallback returned empty or wrong endpoint. Using mocks.');
+            console.info('💡 TIP: If you are seeing mock data, check if your ad-blocker or CSP is blocking newsdata.io');
             return {
                 status: 'success',
                 articles: getMockArticles(12),
