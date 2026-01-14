@@ -2272,69 +2272,7 @@ img {
     border-color: var(--cnn-red);
 }
 
-/* ===========================
-   Trending News Bar
-   =========================== */
-.trending-bar {
-    background: #000;
-    color: #fff;
-    padding: 10px 0;
-    border-bottom: 2px solid var(--cnn-red);
-    overflow: hidden;
-    position: relative;
-    z-index: 10;
-}
-
-.trending-inner {
-    display: flex;
-    align-items: center;
-}
-
-.trending-label {
-    background: var(--cnn-red);
-    padding: 2px 12px;
-    font-size: 0.8rem;
-    font-weight: 800;
-    margin-right: 20px;
-    letter-spacing: 1px;
-    flex-shrink: 0;
-}
-
-.trending-ticker {
-    display: flex;
-    white-space: nowrap;
-    animation: ticker 40s linear infinite;
-}
-
-.trending-ticker:hover {
-    animation-play-state: paused;
-}
-
-.ticker-item {
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.ticker-item:hover {
-    color: var(--cnn-red);
-}
-
-.ticker-separator {
-    margin: 0 20px;
-    color: #444;
-}
-
-@keyframes ticker {
-    0% {
-        transform: translateX(100%);
-    }
-
-    100% {
-        transform: translateX(-100%);
-    }
-}
+/* Legacy Trending Bar styles removed to avoid conflict with .trending-bar-top */
 
 /* ===========================
    Expert Perspectives (Redesigned Columnists)
@@ -3081,6 +3019,29 @@ img {
     animation: drawY 5s ease-in-out infinite alternate;
 }
 
+/* Consolidated Ticker Animation */
+@keyframes ticker {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.trending-bar-top .trending-ticker {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 60s linear infinite;
+    /* Adjusted speed for readability */
+    padding-left: 20px;
+}
+
+.trending-bar-top .trending-ticker:hover {
+    animation-play-state: paused;
+}
+
 @keyframes drawX {
     0% {
         opacity: 0;
@@ -3366,16 +3327,7 @@ input:checked+.premium-slider:before {
     opacity: 0.4;
 }
 
-/* Ticker Animation */
-@keyframes ticker {
-    0% {
-        transform: translateX(100%);
-    }
-
-    100% {
-        transform: translateX(-100%);
-    }
-}
+/* Redundant @keyframes ticker removed */
 
 /* Professional Search Icon */
 .search-icon-svg {

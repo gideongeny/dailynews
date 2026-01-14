@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.2.0 [NEWEST]');
+console.log('✅ LOADING SCRIPT v1.2.1 [NEWEST]');
 
 // ===========================
 // Content Validation & Quality
