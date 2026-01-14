@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.3.1 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.3.2 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -2653,10 +2653,7 @@ async function renderSubscribePage() {
                 </div>
 
                 <div class="card-foot">
-                    <button 
-                        class="pricing-btn ${plan.popular ? 'btn-red' : 'btn-outline'}" 
-                        ${plan.disabled ? 'disabled' : `onclick="window.renderBillingStep('${plan.name}', ${isYearly ? (plan.yearly * 12).toFixed(2) : plan.monthly})"`}
-                    >
+                    <button onclick="window.renderBillingStep('${plan.name}', ${displayPrice}, '${plan.id}')" ${plan.disabled ? 'disabled' : ''} class="pricing-btn ${isAnnualVIP ? 'premium' : ''}">
                         ${plan.button}
                     </button>
                 </div>
@@ -2711,11 +2708,12 @@ function initPricingParticles() {
     animate();
 }
 
-window.renderBillingStep = function (planName, amount) {
+window.renderBillingStep = function (planName, amount, planIdArg) {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
-    const planId = planName.toLowerCase().replace(/\s+/g, '-');
+    // Use passed ID or fallback to sanitized name
+    const planId = planIdArg || planName.toLowerCase().trim().replace(/\s+/g, '-');
 
     mainContent.innerHTML = `
         <div class="billing-premium-wrapper">
