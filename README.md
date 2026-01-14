@@ -3,7 +3,10 @@
 ![DailyNews Homepage](file:///c:/Users/mukht/Desktop/vs%20code%20projects/newsweek-main/public/images/screenshot.png)
 
 ## Premium Experience
-DAILYNEWS v1.1.1 is a high-performance news aggregator with a world-class design:
+DAILYNEWS v1.2.3 is a high-performance news aggregator with a world-class design:
+
+![Trending Bar Preview](public/images/trending-preview.png)
+*Professional Trending Bar with "Swallow" Effect v1.2.3*
 - **Premium Subscription**: Glassmorphism pricing cards, animated particles, and dynamic logic.
 - **Global Trending Bar**: Real-time news ticker with "swallow" effect labels.
 - **Regional Content**: Dedicated feeds for Africa, Asia, Europe, Middle East, Oceania, and ASEAN.
