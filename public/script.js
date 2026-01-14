@@ -1941,17 +1941,6 @@ function initSearch() {
         }
     });
 }
-}
-
-document.addEventListener('submit', (e) => {
-    if (e.target.matches('.search-form')) {
-        e.preventDefault();
-        const query = e.target.querySelector('input[name="q"]').value;
-        if (query) {
-            router.navigate(`/search?q=${encodeURIComponent(query)}`);
-        }
-    }
-});
 
 // ===========================
 // Initialize App
