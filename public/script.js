@@ -609,8 +609,8 @@ async function fetchAPI(endpoint) {
             if (endpoint.includes('category/')) {
                 const category = endpoint.split('category/')[1].split('?')[0];
                 if (category === 'kenya') {
-                    // NewsData supports country code, but q=kenya is safer for broad results
-                    newsDataUrl += `&country=ke`;
+                    // NewsData supports country code, we combine it with q=kenya for maximum reach
+                    newsDataUrl += `&country=ke&q=kenya`;
                 } else if (category === 'africa' || category === 'world') {
                     newsDataUrl += `&q=${category}`;
                 } else {
