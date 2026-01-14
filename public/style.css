@@ -2744,8 +2744,8 @@ img {
     padding: 6px 16px;
     position: absolute;
     left: 0;
-    z-index: 30;
-    /* Higher to stay above everything */
+    z-index: 100;
+    /* Extremely high to stay on top */
     box-shadow: 20px 0 30px rgba(0, 0, 0, 1);
     /* Dense shadow for "swallowing" look */
     letter-spacing: 1.5px;
@@ -2775,6 +2775,9 @@ img {
     white-space: nowrap;
     animation: ticker 120s linear infinite;
     will-change: transform;
+    position: relative;
+    z-index: 10;
+    /* Stay below the label and its mask */
 }
 
 .trending-bar-top .ticker-item {
