@@ -1663,12 +1663,24 @@ img {
         /* Simplify for mobile, or stack if critical */
     }
 
+    body {
+        overflow-x: hidden;
+    }
+
     .branding-inner {
         padding: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .site-branding {
+        flex: 1;
+        text-align: center;
     }
 
     .site-title {
-        font-size: 2.2rem;
+        font-size: 1.8rem;
     }
 
     .site-description {
@@ -1689,33 +1701,94 @@ img {
         transition: 0.3s;
     }
 
-    /* Mobile Nav State */
+    /* Mobile Side Drawer Navigation */
     .main-navigation {
-        display: none;
-        /* Hidden by default */
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
+        display: block;
+        /* Always block but hidden by transform */
+        position: fixed;
+        top: 0;
+        left: -320px;
+        /* Start off-screen */
+        width: 300px;
+        height: 100vh;
         background: #fff;
-        padding: 20px;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        border-top: 1px solid #eee;
+        z-index: 2000;
+        padding: 60px 20px;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        border-bottom: none;
     }
 
     .main-navigation.active {
-        display: block;
+        transform: translateX(320px);
     }
 
     .nav-menu {
         flex-direction: column;
-        gap: 15px;
-        align-items: center;
+        gap: 0;
+        align-items: flex-start;
+        width: 100%;
     }
 
-    /* Content */
+    .nav-menu li {
+        width: 100%;
+        border-bottom: 1px solid #f1f5f9;
+        margin: 0;
+    }
+
+    .nav-item {
+        display: block;
+        padding: 15px 10px;
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    /* Mobile Overlay */
+    .mobile-nav-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 1999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-nav-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Prevent scrolling when menu is open */
+    body.menu-open {
+        overflow: hidden;
+    }
+
+    /* Content Fixes */
     .hero-article {
-        height: 350px;
+        height: 300px;
+    }
+
+    .news-card img,
+    .hero-article img,
+    .story-card img {
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .left-column,
+    .right-sidebar {
+        width: 100%;
+        padding: 0;
     }
 
     .hero-title {

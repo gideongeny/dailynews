@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.4.5 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.0 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -1564,30 +1564,43 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
 document.addEventListener('DOMContentLoaded', () => {
     const mobileTrigger = document.querySelector('.mobile-menu-trigger');
     const mainNav = document.querySelector('.main-navigation');
+    const overlay = document.querySelector('.mobile-nav-overlay');
+
+    function toggleMenu(forceClose = false) {
+        const isOpen = mainNav.classList.contains('active');
+        if (isOpen || forceClose) {
+            mainNav.classList.remove('active');
+            mobileTrigger.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            document.body.classList.remove('menu-open');
+        } else {
+            mainNav.classList.add('active');
+            mobileTrigger.classList.add('active');
+            if (overlay) overlay.classList.add('active');
+            document.body.classList.add('menu-open');
+        }
+    }
 
     if (mobileTrigger && mainNav) {
-        mobileTrigger.addEventListener('click', () => {
-            mainNav.classList.toggle('active');
-            mobileTrigger.classList.toggle('active');
+        mobileTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
         });
     }
 
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (mainNav && mainNav.classList.contains('active') &&
-            !mainNav.contains(e.target) &&
-            !mobileTrigger.contains(e.target)) {
-            mainNav.classList.remove('active');
-            mobileTrigger.classList.remove('active');
-        }
-    });
+    if (overlay) {
+        overlay.addEventListener('click', () => toggleMenu(true));
+    }
 
     // Close menu when clicking a link
     const navLinks = document.querySelectorAll('.nav-item');
     navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            if (mainNav) mainNav.classList.remove('active');
-        });
+        link.addEventListener('click', () => toggleMenu(true));
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') toggleMenu(true);
     });
 });
 
