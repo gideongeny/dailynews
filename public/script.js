@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.2.3 [LATEST]');
+console.log('✅ LOADING SCRIPT v1.3.0 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -2716,58 +2716,75 @@ window.renderBillingStep = function (planName, amount) {
     if (!mainContent) return;
 
     mainContent.innerHTML = `
-            <div class="container py-20">
-                <div class="max-w-2xl mx-auto bg-white p-10 rounded-2xl shadow-2xl">
-                    <div class="flex items-center mb-8">
-                        <button onclick="window.renderSubscribePage()" class="text-slate-500 hover:text-slate-900 mr-4">← Back to plans</button>
-                        <h2 class="text-3xl font-black text-slate-900">Billing Information</h2>
+        <div class="billing-premium-wrapper">
+            <canvas id="pricing-particles"></canvas>
+            <div class="pricing-accent-lines">
+                <div class="hline"></div><div class="hline"></div><div class="hline"></div>
+                <div class="vline"></div><div class="vline"></div><div class="vline"></div>
+            </div>
+
+            <div class="container relative z-10">
+                <div class="billing-glass-card">
+                    <button onclick="window.renderSubscribePage()" class="billing-back-btn">
+                        <span>&larr;</span> Back to plans
+                    </button>
+                    
+                    <div class="mb-10">
+                        <span class="pricing-kicker">CHECKOUT</span>
+                        <h2 class="pricing-title" style="font-size: 2.5rem !important;">Billing Information</h2>
                     </div>
                     
-                    <div class="bg-slate-50 p-6 rounded-xl mb-8 border border-slate-100 flex justify-between items-center">
+                    <div class="billing-summary-premium">
                         <div>
-                            <span class="text-sm text-slate-500 uppercase font-bold">Selected Plan</span>
-                            <div class="text-xl font-black text-slate-900">${planName}</div>
+                            <span class="summary-item-label">SELECTED PLAN</span>
+                            <div class="summary-item-value">${planName}</div>
                         </div>
                         <div class="text-right">
-                            <span class="text-sm text-slate-500 uppercase font-bold">Amount Due</span>
-                            <div class="text-2xl font-black text-red-600">$${amount}</div>
+                            <span class="summary-item-label">AMOUNT DUE</span>
+                            <div class="summary-item-price">$${amount}</div>
                         </div>
                     </div>
 
                     <form id="billing-form" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">First Name</label>
-                                <input type="text" id="billing-first-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                            <div class="premium-form-group">
+                                <label class="premium-label">First Name</label>
+                                <input type="text" id="billing-first-name" class="premium-input" placeholder="e.g. John" required>
                             </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Last Name</label>
-                                <input type="text" id="billing-last-name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                            <div class="premium-form-group">
+                                <label class="premium-label">Last Name</label>
+                                <input type="text" id="billing-last-name" class="premium-input" placeholder="e.g. Doe" required>
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Billing Address</label>
-                            <input type="text" id="billing-address" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                        <div class="premium-form-group">
+                            <label class="premium-label">Billing Address</label>
+                            <input type="text" id="billing-address" class="premium-input" placeholder="Street address, apartment, etc." required>
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                            <div class="col-span-1">
-                                <label class="block text-sm font-bold text-slate-700 mb-2">City</label>
-                                <input type="text" id="billing-city" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+                            <div class="premium-form-group">
+                                <label class="premium-label">City</label>
+                                <input type="text" id="billing-city" class="premium-input" placeholder="Nairobi" required>
                             </div>
-                            <div class="col-span-1">
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Country</label>
-                                <input type="text" id="billing-country" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg outline-none" value="Kenya" required>
+                            <div class="premium-form-group">
+                                <label class="premium-label">Country</label>
+                                <input type="text" id="billing-country" class="premium-input" value="Kenya" required disabled>
                             </div>
                         </div>
 
-                        <div id="payment-section" class="pt-8 border-t border-slate-100">
-                            <p class="text-sm text-slate-500 mb-6 text-center">Complete your purchase securely via PayPal</p>
+                        <div id="payment-section-premium">
+                            <p class="payment-note">Complete your purchase securely via PayPal</p>
                             <div id="paypal-button-container-${planName.toLowerCase()}"></div>
                         </div>
                     </form>
                 </div>
             </div>
-        `;
+        </div>
+    `;
+
+    // Re-initialize particles for billing page
+    if (typeof initPricingParticles === 'function') {
+        setTimeout(initPricingParticles, 50);
+    }
 
     // Initialize PayPal
     if (typeof paypal !== 'undefined') {
