@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.5.5 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.6 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -608,7 +608,13 @@ async function fetchAPI(endpoint) {
             let newsDataUrl = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&language=en&page=${page}`;
             if (endpoint.includes('category/')) {
                 const category = endpoint.split('category/')[1].split('?')[0];
-                newsDataUrl += `&category=${category}`;
+                if (category === 'kenya') {
+                    newsDataUrl += `&country=ke&q=kenya`;
+                } else if (category === 'africa') {
+                    newsDataUrl += `&q=africa`;
+                } else {
+                    newsDataUrl += `&category=${category}`;
+                }
             } else if (endpoint.includes('search?q=')) {
                 const query = endpoint.split('search?q=')[1].split('&')[0];
                 newsDataUrl += `&q=${query}`;
