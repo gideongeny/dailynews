@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.5.3 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.5.4 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -289,9 +289,14 @@ function updateAuthUI() {
         return;
     }
 
+    // Mobile Auth UI
+    const mobileAuthSection = document.getElementById('mobile-auth-section');
+
     if (currentUser) {
         const greetingName = currentUser.displayName || (userProfile ? userProfile.fullName : null) || 'Reader';
         console.log('✅ Rendering Logged-In UI for:', greetingName);
+
+        // Desktop
         topBarRight.innerHTML = `
             <span class="user-greeting">Hi, ${greetingName}</span>
             <button onclick="AuthManager.signOut()" class="top-link logout-btn-inline">Sign Out</button>
@@ -301,8 +306,20 @@ function updateAuthUI() {
                 <a href="#" aria-label="Instagram">I</a>
             </div>
         `;
+
+        // Mobile Menu
+        if (mobileAuthSection) {
+            mobileAuthSection.innerHTML = `
+                <div class="mobile-user-info">
+                    <span class="mobile-greeting">Hi, ${greetingName}</span>
+                    <button onclick="AuthManager.signOut()" class="mobile-logout-btn">Sign Out &rarr;</button>
+                </div>
+            `;
+        }
     } else {
         console.log('ℹ️ Rendering Guest UI');
+
+        // Desktop
         topBarRight.innerHTML = `
             <a href="/signin" class="top-link">Sign In</a>
             <a href="/subscribe" class="top-link">Subscribe</a>
@@ -312,6 +329,16 @@ function updateAuthUI() {
                 <a href="#" aria-label="Instagram">I</a>
             </div>
         `;
+
+        // Mobile Menu
+        if (mobileAuthSection) {
+            mobileAuthSection.innerHTML = `
+                <div class="mobile-auth-btn-group">
+                    <a href="/signin" class="mobile-auth-link mobile-signin-link">Sign In</a>
+                    <a href="/subscribe" class="mobile-auth-link mobile-subscribe-link">Join Premium</a>
+                </div>
+            `;
+        }
     }
 }
 

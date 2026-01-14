@@ -1667,8 +1667,13 @@ img {
         overflow-x: hidden;
     }
 
+    .container {
+        padding: 0 5px;
+        /* Reduced space - squeezed fit */
+    }
+
     .branding-inner {
-        padding: 10px 0;
+        padding: 8px 5px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -1729,7 +1734,8 @@ img {
         height: 100vh;
         background: #fff;
         z-index: 2000;
-        padding: 60px 20px;
+        padding: 20px 0;
+        /* Reduced padding */
         box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         overflow-y: auto;
@@ -1827,6 +1833,67 @@ img {
     .footer-bottom {
         flex-direction: column;
         gap: 15px;
+    }
+
+    /* Mobile Auth Section Styling */
+    .mobile-auth-section {
+        padding: 20px 15px;
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 10px;
+    }
+
+    .mobile-auth-btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .mobile-auth-link {
+        display: block;
+        padding: 12px;
+        text-align: center;
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: 0.3s;
+    }
+
+    .mobile-signin-link {
+        background: #fff;
+        color: #1a1a1a;
+        border: 1px solid #cbd5e1;
+    }
+
+    .mobile-subscribe-link {
+        background: #dc143c;
+        color: #fff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(220, 20, 60, 0.25);
+    }
+
+    .mobile-user-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .mobile-greeting {
+        font-weight: 800;
+        color: #1a1a1a;
+        font-size: 1.1rem;
+    }
+
+    .mobile-logout-btn {
+        color: #dc143c;
+        font-weight: 600;
+        background: none;
+        border: none;
+        padding: 5px 0;
+        text-align: left;
+        cursor: pointer;
+        font-size: 0.9rem;
     }
 }
 
