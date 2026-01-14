@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.4.2 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.4.3 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -192,6 +192,39 @@ class AuthManager {
             await auth.signOut();
             showToast('Signed out successfully');
             router.navigate('/');
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    static async signInWithGoogle() {
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            const result = await auth.signInWithPopup(provider);
+
+            // Create user profile if it doesn't exist
+            const userDoc = await db.collection('users').doc(result.user.uid).get();
+            if (!userDoc.exists) {
+                await db.collection('users').doc(result.user.uid).set({
+                    fullName: result.user.displayName,
+                    email: result.user.email,
+                    subscription: 'Free',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            showToast('Welcome back!');
+            router.navigate('/');
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    static async signInWithPhone() {
+        try {
+            showToast('Phone sign-in coming soon!');
+            // Phone auth requires additional setup with reCAPTCHA
+            // We'll implement this in a future update
         } catch (error) {
             showError(error.message);
         }
@@ -2503,6 +2536,29 @@ function renderSignInPage() {
                         </div>
                         <button type="submit" class="premium-auth-btn">Sign In to DailyNews</button>
                     </form>
+                    
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+                    
+                    <div class="social-auth-buttons">
+                        <button onclick="AuthManager.signInWithGoogle()" class="social-auth-btn google-btn">
+                            <svg width="18" height="18" viewBox="0 0 18 18">
+                                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                                <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+                                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                        <button onclick="AuthManager.signInWithPhone()" class="social-auth-btn phone-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Continue with Phone
+                        </button>
+                    </div>
+                    
                     <div class="auth-links-premium">
                         Don't have an account? <a href="/signup">Sign Up</a>
                     </div>
@@ -2557,6 +2613,29 @@ function renderSignUpPage() {
                         </div>
                         <button type="submit" class="premium-auth-btn">Join DailyNews</button>
                     </form>
+                    
+                    <div class="auth-divider">
+                        <span>OR</span>
+                    </div>
+                    
+                    <div class="social-auth-buttons">
+                        <button onclick="AuthManager.signInWithGoogle()" class="social-auth-btn google-btn">
+                            <svg width="18" height="18" viewBox="0 0 18 18">
+                                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                                <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+                                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                        <button onclick="AuthManager.signInWithPhone()" class="social-auth-btn phone-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            Continue with Phone
+                        </button>
+                    </div>
+                    
                     <div class="auth-links-premium">
                         Already have an account? <a href="/signin">Sign In</a>
                     </div>
