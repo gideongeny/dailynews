@@ -3321,7 +3321,17 @@ input:checked+.premium-slider:before {
     margin-bottom: 24px;
 }
 
+.pricing-btn.active-plan {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #fff !important;
+    cursor: default;
+    pointer-events: none;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
 .pricing-card:hover {
+
 
     transform: translateY(-10px);
     background: rgba(255, 255, 255, 0.05);

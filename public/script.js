@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.3.2 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.4.0 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -204,9 +204,33 @@ class AuthManager {
 
 // Global User State
 let currentUser = null;
-AuthManager.onAuthStateChanged(user => {
+let userProfile = null;
+let userSubscription = 'Free';
+
+AuthManager.onAuthStateChanged(async (user) => {
     currentUser = user;
+    if (user) {
+        // Fetch extended profile including subscription
+        try {
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+                userProfile = doc.data();
+                userSubscription = userProfile.subscription || 'Free';
+                console.log(`👤 Profile Loaded: ${userSubscription} Plan`);
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    } else {
+        userProfile = null;
+        userSubscription = 'Free';
+    }
+
     updateAuthUI();
+    // Re-render current page to apply access changes if needed
+    if (typeof processPendingSubscription === 'function') {
+        processPendingSubscription();
+    }
 });
 
 function updateAuthUI() {
@@ -2653,8 +2677,12 @@ async function renderSubscribePage() {
                 </div>
 
                 <div class="card-foot">
-                    <button onclick="window.renderBillingStep('${plan.name}', ${displayPrice}, '${plan.id}')" ${plan.disabled ? 'disabled' : ''} class="pricing-btn ${isAnnualVIP ? 'premium' : ''}">
-                        ${plan.button}
+                    <button 
+                        onclick="${userSubscription === plan.name ? 'void(0)' : `window.renderBillingStep('${plan.name}', ${displayPrice}, '${plan.id}')`}" 
+                        ${(plan.disabled && userSubscription !== plan.name) ? 'disabled' : ''} 
+                        class="pricing-btn ${isAnnualVIP ? 'premium' : ''} ${userSubscription === plan.name ? 'active-plan' : ''}"
+                    >
+                        ${userSubscription === plan.name ? 'Current Active Plan' : plan.button}
                     </button>
                 </div>
             </div>
@@ -2835,6 +2863,42 @@ async function handleSubscriptionSuccess(order, plan) {
         console.error('Update failed:', error);
         showError('Could not link your subscription. Contact support.');
     }
+}
+
+async function processPendingSubscription() {
+    if (!currentUser) return;
+
+    const pendingRaw = localStorage.getItem('pending_subscription');
+    if (!pendingRaw) return;
+
+    try {
+        const pending = JSON.parse(pendingRaw);
+        console.log('🔄 Processing pending subscription:', pending.plan);
+
+        await db.collection('users').doc(currentUser.uid).update({
+            subscription: pending.plan,
+            orderId: pending.orderId,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        localStorage.removeItem('pending_subscription');
+        userSubscription = pending.plan;
+        showToast(`🎉 Subscription Activated: ${pending.plan}!`);
+
+        // Refresh UI if on specific pages
+        if (window.location.hash.includes('subscribe')) {
+            window.renderSubscribePage();
+        }
+    } catch (error) {
+        console.error('Failed to process pending subscription:', error);
+    }
+}
+
+function checkFeatureAccess(requiredLevel) {
+    const levels = { 'Free': 0, 'Standard': 1, 'Premium': 2, 'Elite VIP': 3 };
+    const current = levels[userSubscription] || 0;
+    const required = levels[requiredLevel] || 0;
+    return current >= required;
 }
 
 // ===========================
