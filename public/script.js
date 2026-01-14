@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.4.4 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.4.5 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -201,19 +201,24 @@ class AuthManager {
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
             const result = await auth.signInWithPopup(provider);
+            console.log('🔑 Google Sign-In Success:', result.user.email);
 
             // Create user profile if it doesn't exist
             const userDoc = await db.collection('users').doc(result.user.uid).get();
             if (!userDoc.exists) {
+                console.log('🆕 Creating new user profile...');
                 await db.collection('users').doc(result.user.uid).set({
                     fullName: result.user.displayName,
                     email: result.user.email,
                     subscription: 'Free',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
+            } else {
+                console.log('✅ User profile exists');
             }
 
             showToast('Welcome back!');
+            console.log('🏠 Navigating to Home...');
             router.navigate('/');
         } catch (error) {
             showError(error.message);
@@ -277,11 +282,16 @@ AuthManager.onAuthStateChanged(async (user) => {
 });
 
 function updateAuthUI() {
+    console.log('🔄 updateAuthUI called, user:', currentUser ? currentUser.email : 'null');
     const topBarRight = document.querySelector('.top-bar-right');
-    if (!topBarRight) return;
+    if (!topBarRight) {
+        console.warn('⚠️ .top-bar-right not found in DOM');
+        return;
+    }
 
     if (currentUser) {
         const greetingName = currentUser.displayName || (userProfile ? userProfile.fullName : null) || 'Reader';
+        console.log('✅ Rendering Logged-In UI for:', greetingName);
         topBarRight.innerHTML = `
             <span class="user-greeting">Hi, ${greetingName}</span>
             <button onclick="AuthManager.signOut()" class="top-link logout-btn-inline">Sign Out</button>
@@ -292,6 +302,7 @@ function updateAuthUI() {
             </div>
         `;
     } else {
+        console.log('ℹ️ Rendering Guest UI');
         topBarRight.innerHTML = `
             <a href="/signin" class="top-link">Sign In</a>
             <a href="/subscribe" class="top-link">Subscribe</a>
