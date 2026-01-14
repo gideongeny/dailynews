@@ -705,93 +705,28 @@ async function fetchAPI(endpoint) {
                 aggregatedArticles = [...aggregatedArticles, ...theNewsArticles];
             }
 
-            // Process BBC RSS (results[3])
-            if (results[3] && results[3].items) {
-                const bbcArticles = results[3].items.slice(0, 10).map(a => {
-                    const baseArticle = {
-                        title: cleanDescription(a.title),
-                        description: cleanDescription(a.description || a.content) || 'Read the full story',
-                        content: cleanDescription(a.content || a.description) || '',
-                        url: a.link,
-                        image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                        publishedAt: a.pubDate || new Date().toISOString(),
-                        source: results[3].feed.title.toUpperCase(),
-                        category: 'world',
-                        author: results[3].feed.title
-                    };
-                    baseArticle.id = generateArticleId(baseArticle);
-                    return baseArticle;
-                });
-                aggregatedArticles = [...aggregatedArticles, ...bbcArticles];
-            }
-
-            // Process CNN RSS (results[4])
-            if (results[4] && results[4].items) {
-                const cnnArticles = results[4].items.slice(0, 10).map(a => ({
-                    id: a.guid || Math.random().toString(36).substr(2, 9),
-                    title: cleanDescription(a.title),
-                    description: cleanDescription(a.description || a.content) || 'Read the full story on CNN',
-                    content: cleanDescription(a.content || a.description) || '',
-                    url: a.link,
-                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                    publishedAt: a.pubDate || new Date().toISOString(),
-                    source: 'CNN',
-                    category: 'world',
-                    author: 'CNN'
-                }));
-                aggregatedArticles = [...aggregatedArticles, ...cnnArticles];
-            }
-
-            // Process Guardian RSS (results[5])
-            if (results[5] && results[5].items) {
-                const guardianArticles = results[5].items.slice(0, 10).map(a => ({
-                    id: a.guid || Math.random().toString(36).substr(2, 9),
-                    title: cleanDescription(a.title),
-                    description: cleanDescription(a.description || a.content) || 'Read the full story on The Guardian',
-                    content: cleanDescription(a.content || a.description) || '',
-                    url: a.link,
-                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                    publishedAt: a.pubDate || new Date().toISOString(),
-                    source: 'THE GUARDIAN',
-                    category: 'world',
-                    author: 'The Guardian'
-                }));
-                aggregatedArticles = [...aggregatedArticles, ...guardianArticles];
-            }
-
-            // Process Al Jazeera RSS (results[6])
-            if (results[6] && results[6].items) {
-                const alJazeeraArticles = results[6].items.slice(0, 10).map(a => ({
-                    id: a.guid || Math.random().toString(36).substr(2, 9),
-                    title: cleanDescription(a.title),
-                    description: cleanDescription(a.description || a.content) || 'Read the full story on Al Jazeera',
-                    content: cleanDescription(a.content || a.description) || '',
-                    url: a.link,
-                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                    publishedAt: a.pubDate || new Date().toISOString(),
-                    source: 'AL JAZEERA',
-                    category: 'world',
-                    author: 'Al Jazeera'
-                }));
-                aggregatedArticles = [...aggregatedArticles, ...alJazeeraArticles];
-            }
-
-            // Process Reuters RSS (results[7])
-            if (results[7] && results[7].items) {
-                const reutersArticles = results[7].items.slice(0, 10).map(a => ({
-                    id: a.guid || Math.random().toString(36).substr(2, 9),
-                    title: cleanDescription(a.title),
-                    description: cleanDescription(a.description || a.content) || 'Read the full story on Reuters',
-                    content: cleanDescription(a.content || a.description) || '',
-                    url: a.link,
-                    image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
-                    publishedAt: a.pubDate || new Date().toISOString(),
-                    source: 'REUTERS',
-                    category: 'world',
-                    author: 'Reuters'
-                }));
-                aggregatedArticles = [...aggregatedArticles, ...reutersArticles];
-            }
+            // Dynamic RSS Processing for all feeds in rssFeedsToFetch
+            results.slice(3).forEach((rssResult, index) => {
+                if (rssResult && rssResult.items) {
+                    const sourceName = rssResult.feed?.title || 'NEWS SOURCE';
+                    const rssArticles = rssResult.items.slice(0, 15).map(a => {
+                        const baseArticle = {
+                            title: cleanDescription(a.title),
+                            description: cleanDescription(a.description || a.content) || 'Read the full story',
+                            content: cleanDescription(a.content || a.description) || '',
+                            url: a.link,
+                            image: a.enclosure?.link || a.thumbnail || '/images/World Bank.jpg',
+                            publishedAt: a.pubDate || new Date().toISOString(),
+                            source: sourceName.toUpperCase(),
+                            category: endpoint.includes('category/') ? endpoint.split('category/')[1].split('?')[0] : 'world',
+                            author: sourceName
+                        };
+                        baseArticle.id = generateArticleId(baseArticle);
+                        return baseArticle;
+                    });
+                    aggregatedArticles = [...aggregatedArticles, ...rssArticles];
+                }
+            });
 
             console.log('📈 [TRACE] Total Aggregated Articles (before validation):', aggregatedArticles.length);
 
@@ -868,6 +803,49 @@ function getMockArticles(count) {
         category: 'general',
         author: 'System'
     }));
+}
+
+function validateArticle(article) {
+    if (!article || !article.title || article.title === '[Removed]') return false;
+    if (!article.url || article.url === 'https://removed.com') return false;
+    // Require at least a title and a source
+    return article.title.length > 10 && article.source;
+}
+
+function deduplicateArticles(articles) {
+    const seenUrls = new Set();
+    const seenTitles = new Set();
+    return articles.filter(article => {
+        const titleKey = article.title.toLowerCase().trim();
+        if (seenUrls.has(article.url) || seenTitles.has(titleKey)) {
+            return false;
+        }
+        seenUrls.add(article.url);
+        seenTitles.add(titleKey);
+        return true;
+    });
+}
+
+function filterByCategory(articles, category) {
+    const cat = category.toLowerCase().trim();
+    if (cat === 'all' || cat === 'general' || cat === 'world') return articles;
+    return articles.filter(article => {
+        const articleCat = (article.category || '').toLowerCase();
+        const articleTitle = (article.title || '').toLowerCase();
+        const articleDesc = (article.description || '').toLowerCase();
+        return articleCat.includes(cat) || articleTitle.includes(cat) || articleDesc.includes(cat);
+    });
+}
+
+function cleanDescription(text) {
+    if (!text) return '';
+    return text.replace(/<[^>]*>?/gm, '') // Remove HTML
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&apos;/g, "'")
+        .replace(/&gt;/g, '>')
+        .replace(/&lt;/g, '<')
+        .trim();
 }
 
 function showLoading() {
@@ -1072,6 +1050,28 @@ async function renderHomePage() {
                 <div class="content-wrapper">
                     <div class="left-column">
                         ${data.articles && data.articles.length > 0 ? renderHeroSection(data.articles[0], data.articles.slice(1, 3)) : '<p>No articles available</p>'}
+                        
+                        <!-- Live News Section -->
+                        <div class="home-live-section">
+                            <div class="live-header">
+                                <h2><span class="live-indicator"></span> LIVE GLOBAL NEWS</h2>
+                                <button onclick="router.navigate('/video')" class="see-all" style="background:none; border:none; color:#DC143C; cursor:pointer; font-weight:bold;">Watch All Channels &rsaquo;</button>
+                            </div>
+                            <div class="live-grid">
+                                ${LIVE_CHANNELS.slice(0, 3).map(channel => `
+                                    <div class="live-card">
+                                        <div class="video-thumb">
+                                            <iframe src="https://www.youtube.com/embed/${channel.youtubeId}?autoplay=0&mute=1" frameborder="0" allowfullscreen></iframe>
+                                        </div>
+                                        <div class="live-card-info">
+                                            <h3>${channel.name}</h3>
+                                            <p>${channel.region}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
                         ${data.articles && data.articles.length > 3 ? renderNewsGrid(data.articles.slice(3), 'LATEST STORIES') : ''}
                         ${renderColumnistsSection(data.articles || [])}
                     </div>
@@ -1400,6 +1400,7 @@ function renderHeroSection(mainArticle, secondaryArticles = []) {
                     <article class="hero-article" data-article-id="${mainArticle.id}" style="cursor: pointer;">
                         <div class="hero-image">
                             <img src="${mainArticle.image}" alt="${mainArticle.title}" loading="eager" onerror="this.src='images/World Bank.jpg'">
+                            ${mainArticle.type === 'video' ? '<div class="video-badge-hero">▶ LIVE VIDEO</div>' : ''}
                             <div class="hero-overlay">
                                 <span class="hero-category">${(mainArticle.category || 'GENERAL').toUpperCase()}</span>
                                 <h1 class="hero-title">${mainArticle.title}</h1>
@@ -1442,6 +1443,7 @@ function renderNewsGrid(articles, title = 'LATEST STORIES') {
                     <article class="news-card" data-article-id="${article.id}" style="cursor: pointer;">
                         <div class="news-image">
                             <img src="${article.image}" alt="${article.title}" loading="lazy" onerror="this.src='images/World Bank.jpg'">
+                            ${article.type === 'video' ? '<div class="video-badge">▶ VIDEO</div>' : ''}
                         </div>
                         <div class="news-content">
                             <span class="news-category">${(article.category || 'GENERAL').toUpperCase()}</span>
@@ -1518,7 +1520,7 @@ function renderColumnistsSection(articles = []) {
             name: 'Yvonne Okwara',
             source: 'Citizen TV',
             category: 'Politics & Economy',
-            image: 'https://pbs.twimg.com/profile_images/1643194038165749760/9nKz7c6A_400x400.jpg',
+            image: '/images/yvonne.jpeg',
             bio: 'Senior journalist and news anchor specializing in political analysis and economic reporting.',
             recentArticles: [
                 { title: 'Economic Resilience in East Africa', url: '/search?q=Yvonne+Okwara' },
@@ -1735,10 +1737,15 @@ async function renderRegionsPage() {
     showLoading();
     // Mix of regional news
     try {
-        const [africa, asia, samerica] = await Promise.all([
+        const [africa, asia, samerica, namerica, europe, oceania, middleeast, asean] = await Promise.all([
             fetchAPI('category/africa'),
             fetchAPI('category/asia'),
-            fetchAPI('category/south-america')
+            fetchAPI('category/south-america'),
+            fetchAPI('region/north-america'),
+            fetchAPI('region/europe'),
+            fetchAPI('region/oceania'),
+            fetchAPI('region/middle-east'),
+            fetchAPI('region/asean')
         ]);
         hideLoading();
 
@@ -1768,10 +1775,50 @@ async function renderRegionsPage() {
 
                 <section class="region-section">
                     <div class="region-title-bar">
+                        <h2>EUROPE</h2>
+                        <a href="/region/europe" class="see-all">See More Europe News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(europe.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>NORTH AMERICA</h2>
+                        <a href="/region/north-america" class="see-all">See More North America News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(namerica.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>MIDDLE EAST</h2>
+                        <a href="/region/middle-east" class="see-all">See More Middle East News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(middleeast.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
                         <h2>SOUTH AMERICA</h2>
                         <a href="/regions/south-america" class="see-all">See More LatAm News &rsaquo;</a>
                     </div>
                     ${renderNewsGrid(samerica.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>OCEANIA</h2>
+                        <a href="/region/oceania" class="see-all">See More Oceania News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(oceania.articles.slice(0, 6))}
+                </section>
+
+                <section class="region-section">
+                    <div class="region-title-bar">
+                        <h2>ASEAN</h2>
+                        <a href="/region/asean" class="see-all">See More ASEAN News &rsaquo;</a>
+                    </div>
+                    ${renderNewsGrid(asean.articles.slice(0, 6))}
                 </section>
             </div>
         `;
@@ -1911,8 +1958,15 @@ window.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname + window.location.search;
     router.loadRoute(path === '/' ? '/' : path);
 
-    // Initialize enhancements
+    // Initializations
     initReadingProgress();
+
+    // Global Trending Bar Initialization
+    fetchAPI('category/general').then(data => {
+        if (data && data.articles) {
+            initTrendingBar(data.articles);
+        }
+    }).catch(err => console.error('Failed to init global trending bar:', err));
 });
 
 // ===========================
@@ -2452,64 +2506,161 @@ function renderSignUpPage() {
     updateActiveNav();
 }
 
-function renderSubscribePage() {
+async function renderSubscribePage() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
-    renderPricingGrid();
+    mainContent.innerHTML = `
+        <div class="premium-pricing-wrapper">
+            <canvas id="pricing-particles"></canvas>
+            <div class="pricing-accent-lines">
+                <div class="hline"></div><div class="hline"></div><div class="hline"></div>
+                <div class="vline"></div><div class="vline"></div><div class="vline"></div>
+            </div>
 
-    function renderPricingGrid() {
-        mainContent.innerHTML = `
-            <div class="container py-20 text-center">
-                <div class="max-w-4xl mx-auto">
-                    <h1 class="text-4xl font-black text-slate-900 mb-4">Elevate Your Experience</h1>
-                    <p class="text-xl text-slate-600 mb-12">Choose the plan that's right for you. Secure payments via PayPal.</p>
+            <div class="container relative z-10 py-24">
+                <div class="text-center mb-16 max-w-3xl mx-auto">
+                    <span class="pricing-kicker">PREMIUM ACCESS</span>
+                    <h1 class="pricing-title">Plans & Pricing</h1>
+                    <p class="pricing-subtitle">Choose the plan that matches your rhythm and stay ahead of the world.</p>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                        <!-- Standard Plan -->
-                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
-                            <h3 class="text-xl font-bold mb-2">Standard</h3>
-                            <div class="text-3xl font-black mb-6">$0 <span class="text-sm font-normal text-slate-500">/month</span></div>
-                            <ul class="space-y-4 mb-10 flex-grow">
-                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Basic news access</li>
-                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> Standard newsletters</li>
-                                <li class="flex items-center text-slate-400"><span class="mr-2">✗</span> Ad-Free experience</li>
-                            </ul>
-                            <button class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-lg cursor-not-allowed">Current Plan</button>
-                        </div>
-
-                        <!-- Premium Plan -->
-                        <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl border-4 border-red-600 transform scale-105 flex flex-col relative">
-                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-4 py-1 rounded-full text-xs font-bold">MOST POPULAR</div>
-                            <h3 class="text-xl font-bold text-white mb-2">Premium</h3>
-                            <div class="text-3xl font-black text-white mb-6">$9.99 <span class="text-sm font-normal text-slate-400">/month</span></div>
-                            <ul class="space-y-4 mb-10 flex-grow">
-                                <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Ad-Free Journalism</li>
-                                <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Exclusive Expert Analysis</li>
-                                <li class="flex items-center text-slate-200"><span class="text-red-500 mr-2">✓</span> Breaking News SMS Alerts</li>
-                            </ul>
-                            <button onclick="window.renderBillingStep('Premium', 9.99)" class="w-full py-4 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all">Select Premium</button>
-                        </div>
-
-                        <!-- Annual Plan -->
-                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 flex flex-col">
-                            <h3 class="text-xl font-bold mb-2">Annual</h3>
-                            <div class="text-3xl font-black mb-6">$89.99 <span class="text-sm font-normal text-slate-500">/year</span></div>
-                            <ul class="space-y-4 mb-10 flex-grow">
-                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> All Premium Features</li>
-                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> 25% Savings vs Monthly</li>
-                                <li class="flex items-center text-slate-600"><span class="text-green-500 mr-2">✓</span> VIP Event Invites</li>
-                            </ul>
-                            <button onclick="window.renderBillingStep('Annual', 89.99)" class="w-full py-4 bg-slate-900 text-white font-bold rounded-lg hover:bg-black transition-all">Select Annual</button>
-                        </div>
+                    <div class="pricing-toggle-wrap">
+                        <span>Monthly</span>
+                        <label class="premium-switch">
+                            <input type="checkbox" id="pricing-period-toggle">
+                            <span class="premium-slider"></span>
+                        </label>
+                        <span>Yearly <span class="save-tag">SAVE 25%</span></span>
                     </div>
                 </div>
+
+                <div class="pricing-grid" id="pricing-cards-container">
+                    <!-- Cards rendered by JS to handle toggle -->
+                </div>
             </div>
-        `;
+        </div>
+    `;
+
+    const toggle = document.getElementById('pricing-period-toggle');
+    const container = document.getElementById('pricing-cards-container');
+
+    const plans = [
+        {
+            id: 'starter',
+            name: 'Standard',
+            monthly: 0,
+            yearly: 0,
+            description: 'Essential news for daily readers',
+            features: ['Unlimited Article Access', 'Daily Newsletters', 'Standard Support', '5 Personalized Bookmarks'],
+            button: 'Current Plan',
+            disabled: true
+        },
+        {
+            id: 'premium',
+            name: 'Premium',
+            monthly: 9.99,
+            yearly: 7.49,
+            description: 'Ad-free experience with exclusive insights',
+            features: ['Zero Advertisements', 'Expert Analysis & Reports', 'Priority Support', 'Unlimited Bookmarks', 'Offline Reading Mode'],
+            button: 'Select Premium',
+            popular: true
+        },
+        {
+            id: 'annual',
+            name: 'Elite VIP',
+            monthly: 14.99,
+            yearly: 11.25,
+            description: 'The ultimate perspective for professionals',
+            features: ['All Premium Features', 'Monthly Video Briefings', 'VIP Event Invites', 'Early Access to Investigations', 'Multi-device Sync (5)'],
+            button: 'Select Elite'
+        }
+    ];
+
+    function updateCards() {
+        const isYearly = toggle.checked;
+        container.innerHTML = plans.map((plan, i) => `
+            <div class="pricing-card card-animate ${plan.popular ? 'popular' : ''}" style="animation-delay: ${0.25 + i * 0.1}s">
+                ${plan.popular ? '<div class="popular-badge">MOST POPULAR</div>' : ''}
+                <div class="card-head">
+                    <h3>${plan.name}</h3>
+                    <p class="card-desc">${plan.description}</p>
+                    <div class="card-price">
+                        <span class="currency">$</span>
+                        <span class="amount">${isYearly ? plan.yearly : plan.monthly}</span>
+                        <span class="period">/${isYearly ? 'mo*' : 'mo'}</span>
+                    </div>
+                    <p class="billing-note">${isYearly ? `Billed $${(plan.yearly * 12).toFixed(2)} annually` : `Billed monthly`}</p>
+                </div>
+                
+                <div class="card-body">
+                    <ul class="pricing-features">
+                        ${plan.features.map(f => `<li><span class="check-icon">✓</span> ${f}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="card-foot">
+                    <button 
+                        class="pricing-btn ${plan.popular ? 'btn-red' : 'btn-outline'}" 
+                        ${plan.disabled ? 'disabled' : `onclick="window.renderBillingStep('${plan.name}', ${isYearly ? (plan.yearly * 12).toFixed(2) : plan.monthly})"`}
+                    >
+                        ${plan.button}
+                    </button>
+                </div>
+            </div>
+        `).join('');
     }
 
-    window.renderBillingStep = function (planName, amount) {
-        mainContent.innerHTML = `
+    toggle.addEventListener('change', updateCards);
+    updateCards();
+    initPricingParticles();
+    window.scrollTo(0, 0);
+}
+
+function initPricingParticles() {
+    const canvas = document.getElementById('pricing-particles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function setSize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    setSize();
+    window.addEventListener('resize', setSize);
+
+    const particles = [];
+    const count = 100;
+
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            v: Math.random() * 0.5 + 0.1,
+            o: Math.random() * 0.5 + 0.1
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.y -= p.v;
+            if (p.y < 0) {
+                p.y = canvas.height;
+                p.x = Math.random() * canvas.width;
+            }
+            ctx.fillStyle = `rgba(255, 255, 255, ${p.o})`;
+            ctx.fillRect(p.x, p.y, 1, 2);
+        });
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+window.renderBillingStep = function (planName, amount) {
+    const mainContent = document.getElementById('main-content');
+    if (!mainContent) return;
+
+    mainContent.innerHTML = `
             <div class="container py-20">
                 <div class="max-w-2xl mx-auto bg-white p-10 rounded-2xl shadow-2xl">
                     <div class="flex items-center mb-8">
@@ -2563,35 +2714,34 @@ function renderSubscribePage() {
             </div>
         `;
 
-        // Initialize PayPal
-        if (typeof paypal !== 'undefined') {
-            const initButtons = (id, amount, desc) => {
-                paypal.Buttons({
-                    createOrder: (data, actions) => {
-                        return actions.order.create({
-                            purchase_units: [{
-                                description: desc,
-                                amount: { currency_code: 'USD', value: amount },
-                                payee: { email_address: 'ngideon302@gmail.com' }
-                            }]
-                        });
-                    },
-                    onApprove: async (data, actions) => {
-                        const order = await actions.order.capture();
-                        handleSubscriptionSuccess(order, desc);
-                    },
-                    onError: (err) => {
-                        console.error('PayPal Error:', err);
-                    }
-                }).render(`#${id}`);
-            };
+    // Initialize PayPal
+    if (typeof paypal !== 'undefined') {
+        const initButtons = (id, amount, desc) => {
+            paypal.Buttons({
+                createOrder: (data, actions) => {
+                    return actions.order.create({
+                        purchase_units: [{
+                            description: desc,
+                            amount: { currency_code: 'USD', value: amount },
+                            payee: { email_address: 'ngideon302@gmail.com' }
+                        }]
+                    });
+                },
+                onApprove: async (data, actions) => {
+                    const order = await actions.order.capture();
+                    handleSubscriptionSuccess(order, desc);
+                },
+                onError: (err) => {
+                    console.error('PayPal Error:', err);
+                }
+            }).render(`#${id}`);
+        };
 
-            initButtons(`paypal-button-container-${planName.toLowerCase()}`, amount.toString(), `DailyNews ${planName} Subscription`);
-        }
-    };
+        initButtons(`paypal-button-container-${planName.toLowerCase()}`, amount.toString(), `DailyNews ${planName} Subscription`);
+    }
+};
 
-    updateActiveNav();
-}
+updateActiveNav();
 
 async function handleSubscriptionSuccess(order, plan) {
     if (!currentUser) {
