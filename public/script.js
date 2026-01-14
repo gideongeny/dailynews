@@ -1,7 +1,7 @@
 // ===========================
 // Client-Side Router
 // ===========================
-console.log('✅ LOADING SCRIPT v1.4.3 [ULTIMATE]');
+console.log('✅ LOADING SCRIPT v1.4.4 [ULTIMATE]');
 
 // ===========================
 // Content Validation & Quality
@@ -244,15 +244,25 @@ AuthManager.onAuthStateChanged(async (user) => {
     currentUser = user;
     if (user) {
         // Fetch extended profile including subscription
-        try {
-            const doc = await db.collection('users').doc(user.uid).get();
-            if (doc.exists) {
-                userProfile = doc.data();
-                userSubscription = userProfile.subscription || 'Free';
-                console.log(`👤 Profile Loaded: ${userSubscription} Plan`);
+        // Retry logic to handle race condition during signup
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    userProfile = doc.data();
+                    userSubscription = userProfile.subscription || 'Free';
+                    console.log(`👤 Profile Loaded: ${userSubscription} Plan`);
+                    break;
+                } else {
+                    console.log('⌛ Profile not found yet, retrying...');
+                    await new Promise(r => setTimeout(r, 1000));
+                    retries--;
+                }
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                break;
             }
-        } catch (error) {
-            console.error('Error fetching profile:', error);
         }
     } else {
         userProfile = null;
@@ -267,18 +277,29 @@ AuthManager.onAuthStateChanged(async (user) => {
 });
 
 function updateAuthUI() {
-    const navRight = document.querySelector('.nav-right-actions');
-    if (!navRight) return;
+    const topBarRight = document.querySelector('.top-bar-right');
+    if (!topBarRight) return;
 
     if (currentUser) {
-        navRight.innerHTML = `
-            <span class="user-greeting">Hi, ${currentUser.displayName || 'User'}</span>
-            <button onclick="AuthManager.signOut()" class="nav-btn-logout">Sign Out</button>
+        const greetingName = currentUser.displayName || (userProfile ? userProfile.fullName : null) || 'Reader';
+        topBarRight.innerHTML = `
+            <span class="user-greeting">Hi, ${greetingName}</span>
+            <button onclick="AuthManager.signOut()" class="top-link logout-btn-inline">Sign Out</button>
+            <div class="social-icons-small">
+                <a href="#" aria-label="Facebook">F</a>
+                <a href="#" aria-label="Twitter">T</a>
+                <a href="#" aria-label="Instagram">I</a>
+            </div>
         `;
     } else {
-        navRight.innerHTML = `
-            <a href="/signin" class="nav-btn-signin">Sign In</a>
-            <a href="/subscribe" class="nav-btn-subscribe">Subscribe</a>
+        topBarRight.innerHTML = `
+            <a href="/signin" class="top-link">Sign In</a>
+            <a href="/subscribe" class="top-link">Subscribe</a>
+            <div class="social-icons-small">
+                <a href="#" aria-label="Facebook">F</a>
+                <a href="#" aria-label="Twitter">T</a>
+                <a href="#" aria-label="Instagram">I</a>
+            </div>
         `;
     }
 }

@@ -2654,6 +2654,30 @@ img {
     text-decoration: none;
 }
 
+/* User Greeting & Auth UI */
+.user-greeting {
+    margin-right: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.logout-btn-inline {
+    background: transparent;
+    border: none;
+    color: var(--cnn-red);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0;
+    margin-right: 15px;
+    transition: opacity 0.2s;
+}
+
+.logout-btn-inline:hover {
+    opacity: 0.8;
+}
+
 /* Social Auth Buttons */
 .auth-divider {
     display: flex;
