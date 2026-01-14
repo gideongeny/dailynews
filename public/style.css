@@ -2733,6 +2733,8 @@ img {
     display: flex;
     align-items: center;
     position: relative;
+    overflow: hidden;
+    /* Clip items passing the left/right container edges */
 }
 
 .trending-bar-top .trending-label {
@@ -3352,7 +3354,7 @@ input:checked+.premium-slider:before {
 /* Ticker Animation */
 @keyframes ticker {
     0% {
-        transform: translateX(100vw);
+        transform: translateX(100%);
     }
 
     100% {
